@@ -5,25 +5,26 @@
 # Multi-ballots: every agent submits a ranking over their top m agents
 # Multi-winner: up to k agents will be selected
 
-# TO DO: IMPLEMENT ANONYMITY, SURJECTIVITY, COMMITEE MONOTONICITY
-# DO THESE AXIOMS REDUCE TO THE STD AXIOMS FOR M=K=1?
+# TO DO: IMPLEMENT ANONYMITY, COMMITEE MONOTONICITY
+
+# DO THESE AXIOMS REDUCE TO THE STD AXIOMS FOR M=K=1? YES (Imp,NegU,PosU,Mono,NoEx)
 
 
 from pylgl import solve, itersolve
 from math import factorial,comb
-from itertools import combinations,permutations
+from itertools import combinations,permutations,product
 
 # Basics: Voters, Profiles
 
-n = 4
+n = 3
 m = 2 # must be < n
-k = 1 # must be < n+1
+k = 2 # must be < n+1
 
 
 def allVoters():
     return range(n)
 
-def allProfiles():
+def allProfiles(): #((n-1)!/(n-m-1)!)^n many profiles
     return range((comb(n-1,m)*factorial(m)) ** n)
 
 # Restricting the Range of Quantification
@@ -55,7 +56,7 @@ def top(i, x, r):
     return preflist(i, r)[0] == x
 
 # Literals
-
+# (((n-1)!/(n-m-1)!)^n) * n many literals
 def posLiteral(r, x):
     return r * n + x + 1
 
@@ -135,7 +136,11 @@ def cnfMonotonous():
                 all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1])]:         
                     cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
                     
-                
+                #profiles(lambda r : iVariants(j,r1,r) and sorted(preflist(j,r)) == sorted(preflist(j,r1)) and\
+                #(preflist(j,r).index(i) == preflist(j,r1).index(i)-1) ):and\
+                #all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1]):
+                #preflist(j,r)[:preflist(j,r).index(i)-1] == preflist(j,r1)[:preflist(j,r).index(i)-1] and\
+                #preflist(j,r)[preflist(j,r).index(i)+1:] == preflist(j,r1)[preflist(j,r).index(i)+1:]:
 
     for i in allVoters():
         for r1 in allProfiles():
@@ -158,18 +163,37 @@ def cnfNoExclusion():
         cnf.append([posLiteral(r,i) for r in allProfiles()])
     return cnf
   
-# HOW TO PARSE IT AS CNF?  
+
 def cnfSurjective():
     """
     Every group of size k is the outcome under some profile
     """
     cnf = []
+    profilesList = allProfiles()
     for c in list(combinations(allVoters(),k)):
-        cnf.append()
+        for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
+            cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
+# Anonymity
+"""
+def aPermutation(r_1, r_2):
+    permutationList = []
+    for i in allVoters():
+        permutation = []
+        for x in allVoters():
+            permutation.append(preflist(i,r_2)[preflist(i,r_1).index(x)] if x in preflist(i,r_1) else None)
+        permutationList.append(permutation)
+    posPermutation = not any(any(p1[k] != p2[k] and (p1[k] is not None and p2[k] is not None) for k in allVoters()) for [p1,p2] in list(combinations(permutationList,2)))
+    if posPermutation:
+        permutation =
+    return any(any(p1[k] != p2[k] and (p1[k] is not None and p2[k] is not None) for k in allVoters()) for [p1,p2] in list(combinations(permutationList,2)))
 
+def cnfAnonymous():
+    cnf = []
     
+    return cnf
+"""    
 # Export CNF
     
 def saveCNF(cnf, filename):
