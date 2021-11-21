@@ -5,10 +5,6 @@
 # Multi-ballots: every agent submits a ranking over their top m agents
 # Multi-winner: up to k agents will be selected
 
-# TO DO: IMPLEMENT ANONYMITY, SURJECTIVITY, COMMITEE MONOTONICITY
-# DO THESE AXIOMS REDUCE TO THE STD AXIOMS FOR M=K=1?
-
-
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product,chain
@@ -185,7 +181,6 @@ def main(n, m, k):
         cnf = [item for sublist in cnfList for item in sublist] + cnfAtLeastOne() + cnfOutcomeSize()
         results.append(str(strComb[A])+': '+ str(isinstance(solve(cnf),list)))
     return results
-    
     
 
 for n in range(3,5):
