@@ -5,11 +5,6 @@
 # Multi-ballots: every agent submits a ranking over their top m agents
 # Multi-winner: up to k agents will be selected
 
-# TO DO: IMPLEMENT ANONYMITY, COMMITEE MONOTONICITY
-
-# DO THESE AXIOMS REDUCE TO THE STD AXIOMS FOR M=K=1? YES (Imp,NegU,PosU,Mono,NoEx)
-
-
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product
@@ -175,25 +170,7 @@ def cnfSurjective():
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
-# Anonymity
-"""
-def aPermutation(r_1, r_2):
-    permutationList = []
-    for i in allVoters():
-        permutation = []
-        for x in allVoters():
-            permutation.append(preflist(i,r_2)[preflist(i,r_1).index(x)] if x in preflist(i,r_1) else None)
-        permutationList.append(permutation)
-    posPermutation = not any(any(p1[k] != p2[k] and (p1[k] is not None and p2[k] is not None) for k in allVoters()) for [p1,p2] in list(combinations(permutationList,2)))
-    if posPermutation:
-        permutation =
-    return any(any(p1[k] != p2[k] and (p1[k] is not None and p2[k] is not None) for k in allVoters()) for [p1,p2] in list(combinations(permutationList,2)))
 
-def cnfAnonymous():
-    cnf = []
-    
-    return cnf
-"""    
 # Export CNF
     
 def saveCNF(cnf, filename):
@@ -205,16 +182,25 @@ def saveCNF(cnf, filename):
         file.write(' '.join([str(lit) for lit in clause]) + ' 0\n')
     file.close()
 
-# Interpreting Variables
+# Interpret Outcome
 
 def interpret(variable):
     r = (variable - 1) // n
     x = (variable - 1) % n
-    profilesList = profilesList = list(compress(list(product(allVoters(),repeat=n)),[all([k[j] != j for j in allVoters()]) for k in list(product(allVoters(),repeat=n))]))
-    print(str(profilesList[r]) + ' --> ' + str(x))    
+    profilesList = [preflist(i,r) for i in allVoters()]
+    print(str(profilesList) + ' --> ' + str(x))  
 
+def extractRule(model):
+    rule = []
+    j=0
+    for r in allProfiles():
+        profilesList = [preflist(i,r) for i in allVoters()]
+        rule.append(str(profilesList) + ' --> ' + str([(abs(i)-1) % n for i in model[n*j:n*(j+1)] if i>0]))
+        j+=1
+    for R in rule:
+        print(R)
+    return rule
 
 # SAT-solving
 print('impartial + neg unan + pos unan together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfOutcomeSize() + cnfImpartial() + cnfNegUnanimous() + cnfPosUnanimous()),list)))
 print('impartial + neg unan + noexcl + monotonous together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfOutcomeSize() + cnfImpartial() + cnfNegUnanimous() + cnfNoExclusion() + cnfMonotonous()),list)))
-#print('impartial + neg unan together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfOutcomeSize() + cnfImpartial() + cnfNegUnanimous()),list)))
