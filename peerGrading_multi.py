@@ -60,15 +60,17 @@ def negLiteral(r,x):
 
 # Modelling Nomination Rules
 
+# Size of Outcome Set
+
 def cnfAtLeastOne():
     cnf = []
     for r in allProfiles():
         cnf.append([posLiteral(r,x) for x in allVoters()])
     return cnf    
-
-def cnfOutcomeSize():
+    
+def cnfAtMostK():
     """
-    At most k agents will be selected; SHOULD IT BE EXACTLY K?
+    At most k agents will be selected
     """
     cnf = []
     for r in allProfiles():
@@ -76,6 +78,19 @@ def cnfOutcomeSize():
             for y in voters(lambda j: j not in c):
                 ll = [negLiteral(r,x) for x in c if x is not None]
                 ll.append(negLiteral(r,y))
+                cnf.append(ll)
+    return cnf     
+    
+def cnfAtLeastK():
+    """
+    At least k agents will be selected
+    """
+    cnf = []
+    for r in allProfiles():
+        for c in list(combinations(allVoters(),n-k)):
+            for y in voters(lambda j: j not in c):
+                ll = [posLiteral(r,x) for x in c if x is not None]
+                ll.append(posLiteral(r,y))
                 cnf.append(ll)
     return cnf     
 
@@ -202,5 +217,6 @@ def extractRule(model):
     return rule
 
 # SAT-solving
-print('impartial + neg unan + pos unan together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfOutcomeSize() + cnfImpartial() + cnfNegUnanimous() + cnfPosUnanimous()),list)))
-print('impartial + neg unan + noexcl + monotonous together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfOutcomeSize() + cnfImpartial() + cnfNegUnanimous() + cnfNoExclusion() + cnfMonotonous()),list)))
+
+#print('impartial + neg unan + pos unan together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfAtLeastK() + cnfAtMostK() + cnfImpartial() + cnfNegUnanimous() + cnfPosUnanimous()),list)))
+#print('impartial + neg unan + noexcl + monotonous together are satisfiable: ' + str(isinstance(solve(cnfAtLeastOne() + cnfAtLeastK() + cnfAtMostK() + cnfImpartial() + cnfNegUnanimous() + cnfNoExclusion() + cnfMonotonous()),list)))
