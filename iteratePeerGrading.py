@@ -2,18 +2,13 @@
 # Peer Grading
 # On the basis of Holzman, Moulin - Impartial Nominations for a Prize
 
-# Multi-ballots: every agent submits a ranking over their top m agents
-# Multi-winner: up to k agents will be selected
 
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product,chain
 
-def axCombinations(axList):
-    return list(chain.from_iterable(combinations(axList, r) for r in range(2,len(axList)+1)))
 
-
-def main(n, m, k):
+def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     # Basics: Voters, Profiles
     
@@ -67,9 +62,9 @@ def main(n, m, k):
             cnf.append([posLiteral(r,x) for x in allVoters()])
         return cnf    
 
-    def cnfOutcomeSize():
+    def cnfAtMostK():
         """
-        At most k agents will be selected; SHOULD IT BE EXACTLY K?
+        At most k agents will be selected
         """
         cnf = []
         for r in allProfiles():
@@ -79,6 +74,19 @@ def main(n, m, k):
                     ll.append(negLiteral(r,y))
                     cnf.append(ll)
         return cnf     
+        
+    def cnfAtLeastK():
+        """
+        At least k agents will be selected
+        """
+        cnf = []
+        for r in allProfiles():
+            for c in list(combinations(allVoters(),n-k)):
+                for y in voters(lambda j: j not in c):
+                    ll = [posLiteral(r,x) for x in c if x is not None]
+                    ll.append(posLiteral(r,y))
+                    cnf.append(ll)
+        return cnf   
 
     # Impartiality
 
@@ -132,11 +140,6 @@ def main(n, m, k):
                     all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1])]:         
                         cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
                         
-                    #profiles(lambda r : iVariants(j,r1,r) and sorted(preflist(j,r)) == sorted(preflist(j,r1)) and\
-                    #(preflist(j,r).index(i) == preflist(j,r1).index(i)-1) ):and\
-                    #all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1]):
-                    #preflist(j,r)[:preflist(j,r).index(i)-1] == preflist(j,r1)[:preflist(j,r).index(i)-1] and\
-                    #preflist(j,r)[preflist(j,r).index(i)+1:] == preflist(j,r1)[preflist(j,r).index(i)+1:]:
 
         for i in allVoters():
             for r1 in allProfiles():
@@ -173,28 +176,94 @@ def main(n, m, k):
 
     # SAT-solving
     
+    if outSize == False:
+        outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
+    else: 
+        sizes = outSize
+        outSize = []
+        for x in sizes:
+            outSize.append(eval(x))
+    if outSizeLabels == False:
+        outSizeLabels = ["0< <=K","<=K","=K"]
+    axioms = ax
+    ax = []
+    for x in axioms:
+        ax.append(eval(x))
+    
     results = []
-    strComb = axCombinations(["I","NU","PU","M","NE","S"])
-    cnfComb = axCombinations([cnfImpartial(),cnfNegUnanimous(),cnfPosUnanimous(),cnfMonotonous(),cnfNoExclusion(),cnfSurjective()])
-    for A in range(len(strComb)):
-        cnfList = cnfComb[A]
-        cnf = [item for sublist in cnfList for item in sublist] + cnfAtLeastOne() + cnfOutcomeSize()
-        results.append(str(strComb[A])+': '+ str(isinstance(solve(cnf),list)))
+    for i in range(len(axLabels)):
+        for j in range(len(outSizeLabels)):
+            cnf = ax[i] + outSize[j]
+            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
     return results
     
-
-for n in range(3,5):
-    for k in range(1,n):
-        for m in range(1,n):     
-            file = open('pg_nmk_ax.txt', 'a')
-            file.write(str(n)+','+str(m)+','+str(k)+':\n')   
-            print(str(n)+','+str(m)+','+str(k)+': ')
-            
-            for r in main(n,m,k):
-                file.write(r +'\n') 
-                print(r)
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
+    """
+    Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
+    and different allowed sizes of the outcome set.
+    
+    Keyword arguments:
+    nRange -- list of values for n
+    mRange -- list of values for m, {1,..max(nRange)-1} is default
+    kRange -- list of values for k, {1,..max(nRange)-1} is default
+    ax -- list of strings, each containing python code to generate CNF which should go into SAT-solver
+    axLabels -- list of labels identifying the CNFs in ax
+    outSize -- list of strings, each containing python code to generate CNF which specify the size of the outcome set
+    outSizeLabels -- list of labels identifying the CNFs in outSize
+    filename -- string containing file name to write results into
+    """
+    if mRange == False:
+        mRange = range(1,max(nRange))
+    if kRange == False:
+        kRange = range(1,max(nRange))
+    
+    count = 0
+    
+    for n in nRange:
+        for k in (x for x in kRange if x < n):
+            for m in (x for x in mRange if x < n):   
+                if count != 0:
+                    file = open(filename, 'a')
+                else: 
+                    file = open(filename, 'w')
+                file.write(str(n)+','+str(m)+','+str(k)+':\n')   
+                print(str(n)+','+str(m)+','+str(k)+': ')
                 
-            file.write('\n')
-            print('-------------------------------------')
-            file.close()
-            #print(str(n)+','+str(m)+','+str(k)+': '+str(main(n,m,k)))
+                for r in main(n,m,k,ax,axLabels,outSize,outSizeLabels):
+                    file.write(r +'\n') 
+                    print(r)
+                    
+                file.write('\n')
+                print('-------------------------------------')
+                file.close()
+                
+                count += 1
+                
+def giveCombinations(cList):
+    """
+    Return all possible subsets of size at least 2 of a list
+    """
+    return list(chain.from_iterable(combinations(cList, r) for r in range(2,len(cList)+1)))     
+     
+if __name__ == "__main__":
+    # all combinations for all sizes
+    axDesc = giveCombinations(["I","NU","PU","M","NE","S"])
+    axComb = giveCombinations(["cnfImpartial()","cnfNegUnanimous()","cnfPosUnanimous()","cnfMonotonous()","cnfNoExclusion()","cnfSurjective()"])
+    axCnf = ["+".join(combination) for combination in axComb]
+    iterate(nRange=range(3,5),ax=axCnf,axLabels=axDesc)
+    
+    # all combinations which include impartiality for size =k
+    axDesc = [tuple("I") + axioms  for axioms in giveCombinations(["NU","PU","M","NE","S"])]
+    axComb = giveCombinations(["cnfNegUnanimous()","cnfPosUnanimous()","cnfMonotonous()","cnfNoExclusion()","cnfSurjective()"])
+    axCnf = ["cnfImpartial()+"+"+".join(combination) for combination in axComb]
+    iterate(nRange=range(3,5),ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"])
+    
+    # holzman  for size =k
+    axDesc = ["I,NU,PU","I,A,NE"]
+    cnfComb = ["cnfNegUnanimous()+cnfPosUnanimous()+cnfImpartial()","cnfAnonymous()+cnfNoExclusion()+cnfImpartial()"]
+    iterate(nRange=range(3,5),ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"])
+    
+    # single instance
+    axDesc = ["I,NU,M"]
+    cnfComb = ["cnfNegUnanimous()+cnfPosUnanimous()+cnfMonotonousl()"]
+    iterate(nRange=[3],mRange=[2],kRange=[2],ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastOne()+cnfAtMostK()"],outSizeLabels=["0< =K"])
