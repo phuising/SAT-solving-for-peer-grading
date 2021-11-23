@@ -185,6 +185,17 @@ def cnfSurjective():
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
+#Non Constantness
+
+def cnfNonConstant():
+    cnf =[]
+    for i in allVoters():
+        clause = []
+        for r in allProfiles():
+            clause.append(negLiteral(r,i))
+        cnf.append(clause)   
+    return cnf
+
 
 # Export CNF
     
