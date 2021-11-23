@@ -174,6 +174,17 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                 cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
         return cnf
 
+    #Non Constantness
+
+def cnfNonConstant():
+    cnf =[]
+    for i in allVoters():
+        clause = []
+        for r in allProfiles():
+            clause.append(negLiteral(r,i))
+        cnf.append(clause)   
+    return cnf
+
     # SAT-solving
     
     if outSize == False:
