@@ -176,14 +176,14 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     #Non Constantness
 
-def cnfNonConstant():
-    cnf =[]
-    for i in allVoters():
-        clause = []
-        for r in allProfiles():
-            clause.append(negLiteral(r,i))
-        cnf.append(clause)   
-    return cnf
+    def cnfNonConstant():
+        cnf =[]
+        for i in allVoters():
+            clause = []
+            for r in allProfiles():
+                clause.append(negLiteral(r,i))
+            cnf.append(clause)   
+        return cnf
 
     # SAT-solving
     
