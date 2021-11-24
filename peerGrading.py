@@ -185,7 +185,7 @@ def cnfSurjective():
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
-#Non Constantness
+#Non Constantness - for any voter there is a profile where she loses - works only for k = 1 
 
 def cnfNonConstant():
     cnf =[]
