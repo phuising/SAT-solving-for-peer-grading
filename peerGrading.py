@@ -124,7 +124,7 @@ def cnfPosImpartial():
     return cnf
 
 def cnfImpartial():
-    cnf = cnfNegImpartial + cnfPosImpartial
+    cnf = cnfNegImpartial() + cnfPosImpartial()
     return cnf
     
 # Unanimity
