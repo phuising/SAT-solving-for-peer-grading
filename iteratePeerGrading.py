@@ -174,15 +174,12 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                 cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
         return cnf
 
-    #Non Constantness
-
     def cnfNonConstant():
-        cnf =[]
-        for i in allVoters():
-            clause = []
-            for r in allProfiles():
-                clause.append(negLiteral(r,i))
-            cnf.append(clause)   
+        cnf = []
+        profilesList = allProfiles()
+        for c in list(combinations(allVoters(),k)):
+            for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
+                cnf.append([negLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
         return cnf
 
     # SAT-solving

@@ -187,41 +187,19 @@ def cnfSurjective():
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
-#single Non Constantness - for any voter there is a profile where she loses - works only for k = 1 
-
-def cnfsingleNonConstant():
-    cnf =[]
-    for i in allVoters():
-        clause = []
-        for r in allProfiles():
-            clause.append(negLiteral(r,i))
-        cnf.append(clause)   
-    return cnf
-
-#general Non Constantness - works for any k but is not computationaly efficient.
-
-def uniqueLiteral(r, *args):
-    if len(args) !=k:
-        print("invalid winners")
-    else:
-        winners = list(args)
-        winners.sort()
-        normal_literals = len(list(allProfiles()))*n + n + 1
-        unique_literal = normal_literals + r * scipy.special.binom(n,k)
-        d = 1 
-        for i in args:
-            for j in range(i):
-                unique_literal = unique_literal + (n - 1)**k
-                d += 1
-        
-        return unique_literal
 
 """
 For any set of winners (of size k) there is a profile in which this set does not win. 
 """
 
 def cnfNonConstant():
-    pass
+    
+    cnf = []
+    profilesList = allProfiles()
+    for c in list(combinations(allVoters(),k)):
+        for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
+            cnf.append([negLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+    return cnf
 
 # Export CNF
     
