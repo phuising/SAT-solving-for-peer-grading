@@ -185,7 +185,19 @@ def cnfSurjective():
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
     return cnf
 
+# Anonymity
 
+def vPermutation(r1, r2):
+    return sorted([preflist(i,r1) for i in allVoters()]) == sorted([preflist(j,r2) for j in allVoters()])
+
+def cnfAnonymous():
+    cnf = []
+    for r1 in allProfiles():
+        for r2 in profiles(lambda r : vPermutation(r,r1)):
+            for x in allVoters():
+                cnf.extend([[negLiteral(r1,x),posLiteral(r2,x)],[posLiteral(r1,x),negLiteral(r2,x)]])
+    return cnf
+    
 # Export CNF
     
 def saveCNF(cnf, filename):
