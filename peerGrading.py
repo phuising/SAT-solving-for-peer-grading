@@ -8,11 +8,13 @@
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product
+import scipy.special
+
 
 # Basics: Voters, Profiles
 
 n = 3
-m = 2 # must be < n
+m = 1 # must be < n
 k = 2 # must be < n+1
 
 
@@ -232,6 +234,19 @@ def cnfNondictatorial():
                 clause.append(negLiteral(r,j))
         cnf.append(clause)
     return cnf 
+
+"""
+For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
+"""
+
+def cnfNonConstant():
+    
+    cnf = []
+    for j in range(1,k+1):
+        for c in list(combinations(allVoters(),j)):
+            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+            cnf.append(clause)
+    return cnf
 
 # Export CNF
     
