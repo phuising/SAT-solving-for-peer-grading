@@ -181,7 +181,6 @@ For any set of winners (of size at most k) there is a profile in which one of th
     def cnfNonConstant():
     
     cnf = []
-    profilesList = allProfiles()
     for j in range(1,k+1):
         for c in list(combinations(allVoters(),j)):
             clause = [negLiteral(r,v) for r in allProfiles() for v in c]
