@@ -212,13 +212,13 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
     
     def cnfNondictatorial():
         """
-        Call i an dictator if the outcome set consists always of the top m-1 voters in i's ballots and i herself
+        Call i an dictator if the outcome set consists always of the top k-1 voters in i's ballots and i herself
         """
         cnf = []
         for i in allVoters():
             clause = []
             for r in allProfiles():
-                for j in voters(lambda x : x in preflist(i,r)[:m-1] or x == i):
+                for j in voters(lambda x : x in preflist(i,r)[:k-1] or x == i):
                     clause.append(negLiteral(r,j))
             cnf.append(clause)
         return cnf 
