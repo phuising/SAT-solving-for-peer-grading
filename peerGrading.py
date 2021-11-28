@@ -196,7 +196,7 @@ def cnfNonConstant():
     
     cnf = []
     profilesList = allProfiles()
-    for j in range(1,k+1)
+    for j in range(1,k+1):
         for c in list(combinations(allVoters(),j)):
             for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
                 cnf.append([negLiteral(profilesList[l],comb[l]) for l in range(len(profilesList))])
