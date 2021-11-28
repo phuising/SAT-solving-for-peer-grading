@@ -88,18 +88,39 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                     cnf.append(ll)
         return cnf   
 
-    # Impartiality
+   # Impartiality
+
+    """
+    Impartiality assures that a voter cannot influent them being elected or not. Positive impartiality assures that 
+    a voter cannot, by voting untruthfully, make herself elected (i.e. if she is not elected with her truthful preferences then
+    in any i-variant she cannot be elected). Neative impartiality assures that she cannot, by voting untruthfully, make herself
+    not elected i.e. if she is elected with her truthful preferences then in any i-variant she must also be elected)
+    """
 
     def iVariants(i, r1, r2):
         return all(preference(j,r1) == preference(j,r2) for j in voters(lambda j : j!=i))
         
-    def cnfImpartial():
+    def cnfNegImpartial():
         cnf = []
         for i in allVoters():
             for r1 in allProfiles():
                 for r2 in profiles(lambda r : iVariants(i,r1,r)):
-                    cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
+                    cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)]])
         return cnf
+
+
+    def cnfPosImpartial():
+        cnf = []
+        for i in allVoters():
+            for r1 in allProfiles():
+                for r2 in profiles(lambda r : iVariants(i,r1,r)):
+                    cnf.extend([[posLiteral(r1,i),negLiteral(r2,i)]])
+        return cnf
+
+    def cnfImpartial():
+        cnf = cnfNegImpartial() + cnfPosImpartial()
+        return cnf
+    
         
     # Unanimity
 
@@ -174,18 +195,18 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                 cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
         return cnf
 
-"""
-For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
-"""
-
     def cnfNonConstant():
-    
-    cnf = []
-    for j in range(1,k+1):
-        for c in list(combinations(allVoters(),j)):
-            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
-            cnf.append(clause)
-    return cnf
+        """
+        For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
+        """
+
+        cnf = []
+        for j in range(1,k+1):
+            for c in list(combinations(allVoters(),j)):
+                clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+                cnf.append(clause)
+        return cnf
+
 
     # Anonymity
 
@@ -199,6 +220,22 @@ For any set of winners (of size at most k) there is a profile in which one of th
                 for x in allVoters():
                     cnf.extend([[negLiteral(r1,x),posLiteral(r2,x)],[posLiteral(r1,x),negLiteral(r2,x)]])
         return cnf
+        
+    # Non-dictatorship
+    
+    def cnfNondictatorial():
+        """
+        Call i an dictator if the outcome set consists always of the top k-1 voters in i's ballots and i herself
+        """
+        cnf = []
+        for i in allVoters():
+            clause = []
+            for r in allProfiles():
+                for j in voters(lambda x : x in preflist(i,r)[:k-1] or x == i):
+                    clause.append(negLiteral(r,j))
+            cnf.append(clause)
+        return cnf 
+    
 
     # SAT-solving
     
