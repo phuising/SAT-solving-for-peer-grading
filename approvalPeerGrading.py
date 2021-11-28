@@ -80,44 +80,42 @@ def cnfAtLeastOne():
     return cnf    
     
 def cnfAtMostK():
-    """At most k agents will be selected."""
+    """At most k agents will be selected. 
+    It must be the case that k<n, else the cnf will be empty and unsatisfiable."""
     cnf = []
-    # If k=n then the requirement is always satisfied.
-    if k == n:
-        cnf.append([True]) # DOES THIS WORK?
-    # If k<n then in any combination of k+1 voters, there must be at least one loser.
-    else:
-        for r in allApprovalProfiles():
-            for combo in list(combinations(allVoters(),k+1)):
-                cnf.append([negLiteral(r,i) for i in combo])
+    # For each profile, in any selection of k+1 agents, at least one must be a loser.
+    for r in allApprovalProfiles():
+        for combo in list(combinations(allVoters(),k+1)):
+            cnf.append([negLiteral(r,i) for i in combo])
     return cnf
 
-print(len(cnfAtMostK()))
+def cnfAtLeastK():
+    """At least k agents will be selected."""
+    cnf = []
+    # for any profile, there can never be n-k+1 (or more) losers (for then there would be at most k-1 winners)
+    # i.e., any set of n-k+1 voters, there has to be at least one winnner
+    for r in allApprovalProfiles():
+        for combo in list(combinations(allVoters(),n-k+1)):
+            cnf.append([posLiteral(r,i) for i in combo])
+    return cnf
 
-# def cnfAtLeastK():
-#     """
-#     At least k agents will be selected
-#     """
-#     cnf = []
-#     for r in allProfiles():
-#         for c in list(combinations(allVoters(),n-k)):
-#             for y in voters(lambda j: j not in c):
-#                 ll = [posLiteral(r,x) for x in c if x is not None]
-#                 ll.append(posLiteral(r,y))
-#                 cnf.append(ll)
-#     return cnf     
+# Impartiality
 
-# # Impartiality
-
-# def iVariants(i, r1, r2):
-#     return all(preference(j,r1) == preference(j,r2) for j in voters(lambda j : j!=i))
+def iVariants(i, r1, r2):
+    """r1 and r2 are i variants if they agree on all voters except i."""
+    return all(approvalSet(j,r1) == approvalSet(j,r2) for j in voters(lambda j : j!=i))
     
-# def cnfImpartial():
-#     cnf = []
-#     for i in allVoters():
-#         for r1 in allProfiles():
-#             for r2 in profiles(lambda r : iVariants(i,r1,r)):
-#                 cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
-#     return cnf
+def cnfImpartial():
+    """No voter can make the difference between themselves being elected or not."""
+    cnf = []
+    for i in allVoters():
+        for r1 in allApprovalProfiles():
+            # List comprehension generates list of all i variants of r1 that are *larger than r1* for symmetry breaking.
+            for r2 in [prof for prof in approvalProfiles(lambda r : iVariants(i,r1,r)) if prof > r1]:
+                # If i wins in r1, then i wins in r2 and same for losing.
+                cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
+    return cnf
 
-## TESTING #########################################################
+print(len(cnfImpartial()))
+
+## TESTING ########################################################################################################################
