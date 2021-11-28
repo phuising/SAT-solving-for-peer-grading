@@ -202,14 +202,13 @@ def cnfSurjective():
 
 def cnfNonConstant():
     """
-    For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
+    For any set of winners (of size k) there is a profile in which one of the voters in this set does not win. 
     """
     
     cnf = []
-    for j in range(1,k+1):
-        for c in list(combinations(allVoters(),j)):
-            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
-            cnf.append(clause)
+    for c in list(combinations(allVoters(),k)):
+        clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+        cnf.append(clause)
     return cnf
 
 # Anonymity
