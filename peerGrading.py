@@ -189,16 +189,17 @@ def cnfSurjective():
 
 
 """
-For any set of winners (of size k) there is a profile in which this set does not win. 
+For any set of winners (of size at most k) there is a profile in which this set does not win. 
 """
 
 def cnfNonConstant():
     
     cnf = []
     profilesList = allProfiles()
-    for c in list(combinations(allVoters(),k)):
-        for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
-            cnf.append([negLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+    for j in range(1,k+1)
+        for c in list(combinations(allVoters(),j)):
+            for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
+                cnf.append([negLiteral(profilesList[l],comb[l]) for l in range(len(profilesList))])
     return cnf
 
 # Export CNF

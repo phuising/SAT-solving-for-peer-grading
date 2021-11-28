@@ -174,12 +174,31 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                 cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
         return cnf
 
+"""
+For any set of winners (of size at most k) there is a profile in which this set does not win. 
+"""
+
     def cnfNonConstant():
+
         cnf = []
         profilesList = allProfiles()
-        for c in list(combinations(allVoters(),k)):
-            for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
-                cnf.append([negLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+        for j in range(1,k+1)
+            for c in list(combinations(allVoters(),j)):
+                for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
+                    cnf.append([negLiteral(profilesList[l],comb[l]) for l in range(len(profilesList))])
+        return cnf
+
+    # Anonymity
+
+    def vPermutation(r1, r2):
+        return sorted([preflist(i,r1) for i in allVoters()]) == sorted([preflist(j,r2) for j in allVoters()])
+
+    def cnfAnonymous():
+        cnf = []
+        for r1 in allProfiles():
+            for r2 in profiles(lambda r : vPermutation(r,r1)):
+                for x in allVoters():
+                    cnf.extend([[negLiteral(r1,x),posLiteral(r2,x)],[posLiteral(r1,x),negLiteral(r2,x)]])
         return cnf
 
     # SAT-solving
@@ -205,7 +224,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
     return results
     
-def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="test_results.txt"):
     """
     Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
     and different allowed sizes of the outcome set.
