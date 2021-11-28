@@ -175,18 +175,18 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
         return cnf
 
 """
-For any set of winners (of size at most k) there is a profile in which this set does not win. 
+For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
 """
 
     def cnfNonConstant():
-
-        cnf = []
-        profilesList = allProfiles()
-        for j in range(1,k+1):
-            for c in list(combinations(allVoters(),j)):
-                for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
-                    cnf.append([negLiteral(profilesList[l],comb[l]) for l in range(len(profilesList))])
-        return cnf
+    
+    cnf = []
+    profilesList = allProfiles()
+    for j in range(1,k+1):
+        for c in list(combinations(allVoters(),j)):
+            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+            cnf.append(clause)
+    return cnf
 
     # Anonymity
 
