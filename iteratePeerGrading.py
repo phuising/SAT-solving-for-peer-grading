@@ -224,7 +224,7 @@ For any set of winners (of size at most k) there is a profile in which this set 
             results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
     return results
     
-def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="test_results.txt"):
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
     """
     Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
     and different allowed sizes of the outcome set.
