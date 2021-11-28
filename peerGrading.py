@@ -167,12 +167,6 @@ def cnfMonotonous():
                 (preflist(j,r).index(i) == preflist(j,r1).index(i)-1) and\
                 all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1])]:         
                     cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
-                    
-                #profiles(lambda r : iVariants(j,r1,r) and sorted(preflist(j,r)) == sorted(preflist(j,r1)) and\
-                #(preflist(j,r).index(i) == preflist(j,r1).index(i)-1) ):and\
-                #all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1]):
-                #preflist(j,r)[:preflist(j,r).index(i)-1] == preflist(j,r1)[:preflist(j,r).index(i)-1] and\
-                #preflist(j,r)[preflist(j,r).index(i)+1:] == preflist(j,r1)[preflist(j,r).index(i)+1:]:
 
     for i in allVoters():
         for r1 in allProfiles():
@@ -195,7 +189,6 @@ def cnfNoExclusion():
         cnf.append([posLiteral(r,i) for r in allProfiles()])
     return cnf
   
-
 def cnfSurjective():
     """
     Every group of size k is the outcome under some profile
@@ -205,6 +198,18 @@ def cnfSurjective():
     for c in list(combinations(allVoters(),k)):
         for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
             cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+    return cnf
+
+def cnfNonConstant():
+    """
+    For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
+    """
+    
+    cnf = []
+    for j in range(1,k+1):
+        for c in list(combinations(allVoters(),j)):
+            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+            cnf.append(clause)
     return cnf
 
 # Anonymity
@@ -234,19 +239,6 @@ def cnfNondictatorial():
                 clause.append(negLiteral(r,j))
         cnf.append(clause)
     return cnf 
-
-"""
-For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
-"""
-
-def cnfNonConstant():
-    
-    cnf = []
-    for j in range(1,k+1):
-        for c in list(combinations(allVoters(),j)):
-            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
-            cnf.append(clause)
-    return cnf
 
 # Export CNF
     
