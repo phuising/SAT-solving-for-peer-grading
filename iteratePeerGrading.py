@@ -201,10 +201,9 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
         """
 
         cnf = []
-        for j in range(1,k+1):
-            for c in list(combinations(allVoters(),j)):
-                clause = [negLiteral(r,v) for r in allProfiles() for v in c]
-                cnf.append(clause)
+        for c in list(combinations(allVoters(),k)):
+            clause = [negLiteral(r,v) for r in allProfiles() for v in c]
+            cnf.append(clause)
         return cnf
 
 
