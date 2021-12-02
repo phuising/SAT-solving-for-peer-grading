@@ -251,7 +251,7 @@ def cnfNondictatorial():
 #No dummy 
 
 """
-For every voter for every combination of voters there is a profile r for which it is not the case that D_r
+For every combination of voters there is a profile r for which it is not the case that D_r for any voter i
 
 D_r <-> In every i-Variant of r every voter from c is elected i.e. c is elected.  
 """
@@ -259,11 +259,12 @@ D_r <-> In every i-Variant of r every voter from c is elected i.e. c is elected.
 def cnfNoDummy():
     cnf = []
     alt =[]
-    for i in allVoters():
-        for c in list(combinations(allVoters(),k)):
-            for r1 in allProfiles():
-                alt.append([negDLiteral(r1,c)])
-                clause = [posDLiteral(r1,c)]
+    
+    for c in list(combinations(allVoters(),k)):
+        for r1 in allProfiles():
+            alt.append(negDLiteral(r1,c))
+            clause = [posDLiteral(r1,c)]
+            for i in allVoters():
                 for r2 in profiles(lambda r : iVariants(i,r1,r)):
                     for j in c:
                         clause.append(negLiteral(r2,j))
