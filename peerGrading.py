@@ -12,7 +12,7 @@ from itertools import combinations,permutations,product
 
 # Basics: Voters, Profiles
 
-n = 3
+n = 4
 m = 2 # must be < n
 k = 2 # must be < n+1
 
@@ -52,12 +52,18 @@ def top(i, x, r):
     return preflist(i, r)[0] == x
 
 # Literals
-# (((n-1)!/(n-m-1)!)^n) * n many literals
-def posLiteral(r, x):
+
+def posLiteral(r, x):# (((n-1)!/(n-m-1)!)^n) * n many literals
     return r * n + x + 1
 
 def negLiteral(r,x):
     return (-1) * posLiteral(r, x)
+    
+def posQLiteral(r, c):
+    return (((comb(n-1,m)*factorial(m)) ** n) * n) + 1 + r * comb(n,k) + list(combinations(allVoters(),k)).index(c)
+
+def negQLiteral(r,c):
+    return (-1) * posQLiteral(r, c)
 
 # Modelling Nomination Rules
 
@@ -184,10 +190,16 @@ def cnfSurjective():
     Every group of size k is the outcome under some profile
     """
     cnf = []
-    profilesList = allProfiles()
     for c in list(combinations(allVoters(),k)):
-        for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
-            cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+        cnf.append([posQLiteral(r,c) for r in allProfiles()])
+    
+    for r in allProfiles():
+        for c in list(combinations(allVoters(),k)): 
+            for x in c:
+                cnf.append([negQLiteral(r,c),posLiteral(r,x)])
+            clause=[negLiteral(r,x) for x in c]
+            clause.append(posQLiteral(r,c))
+            cnf.append(clause)   
     return cnf
 
 def cnfNonConstant():
