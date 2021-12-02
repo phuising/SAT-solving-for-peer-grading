@@ -53,6 +53,12 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     def negLiteral(r,x):
         return (-1) * posLiteral(r, x)
+        
+    def posQLiteral(r, c):
+        return (((comb(n-1,m)*factorial(m)) ** n) * n) + 1 + r * comb(n,k) + list(combinations(allVoters(),k)).index(c)
+
+    def negQLiteral(r,c):
+        return (-1) * posQLiteral(r, c)
 
     # Modelling Nomination Rules
 
@@ -173,17 +179,22 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
         for i in allVoters():
             cnf.append([posLiteral(r,i) for r in allProfiles()])
         return cnf
-      
 
     def cnfSurjective():
         """
         Every group of size k is the outcome under some profile
         """
         cnf = []
-        profilesList = allProfiles()
         for c in list(combinations(allVoters(),k)):
-            for comb in list(product([x for x in c if x is not None],repeat=len(profilesList))):
-                cnf.append([posLiteral(profilesList[k],comb[k]) for k in range(len(profilesList))])
+            cnf.append([posQLiteral(r,c) for r in allProfiles()])
+        
+        for r in allProfiles():
+            for c in list(combinations(allVoters(),k)): 
+                for x in c:
+                    cnf.append([negQLiteral(r,c),posLiteral(r,x)])
+                clause=[negLiteral(r,x) for x in c]
+                clause.append(posQLiteral(r,c))
+                cnf.append(clause)   
         return cnf
 
     def cnfNonConstant():
