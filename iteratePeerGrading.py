@@ -235,6 +235,28 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                     clause.append(negLiteral(r,j))
             cnf.append(clause)
         return cnf 
+
+#No dummy 
+
+"""
+For every voter for every combination of voters there is a profile r for which it is not the case that D_r
+
+D_r <-> In every i-Variant of r every voter from c is elected i.e. c is elected.  
+"""
+
+def cnfNoDummy():
+    cnf = []
+    for i in allVoters():
+        for c in list(combinations(allVoters(),k)):
+            for r1 in allProfiles():
+                cnf.append([negDLiteral(r1,c)])
+                clause = [posDLiteral(r1,c)]
+                for r2 in profiles(lambda r : iVariants(i,r1,r)):
+                    for j in c:
+                        clause.append(negLiteral(r2,j))
+                        cnf.append([negDLiteral(r1,c), posLiteral(r2,j)])
+                cnf.append(clause)
+    return cnf    
     
 
     # SAT-solving

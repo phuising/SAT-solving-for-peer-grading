@@ -12,7 +12,7 @@ from itertools import combinations,permutations,product
 
 # Basics: Voters, Profiles
 
-n = 4
+n = 3
 m = 2 # must be < n
 k = 2 # must be < n+1
 
@@ -64,6 +64,12 @@ def posQLiteral(r, c):
 
 def negQLiteral(r,c):
     return (-1) * posQLiteral(r, c)
+
+def posDLiteral(r,c):
+    return (((comb(n-1,m)*factorial(m)) ** n) * n) + 1 + (len(list(allProfiles())))*comb(n,k) + r * comb(n,k) + list(combinations(allVoters(),k)).index(c)
+
+def negDLiteral(r,c):
+    return (-1) * posDLiteral(r, c)
 
 # Modelling Nomination Rules
 
@@ -241,6 +247,29 @@ def cnfNondictatorial():
         cnf.append(clause)
     return cnf 
 
+
+#No dummy 
+
+"""
+For every voter for every combination of voters there is a profile r for which it is not the case that D_r
+
+D_r <-> In every i-Variant of r every voter from c is elected i.e. c is elected.  
+"""
+
+def cnfNoDummy():
+    cnf = []
+    for i in allVoters():
+        for c in list(combinations(allVoters(),k)):
+            for r1 in allProfiles():
+                cnf.append([negDLiteral(r1,c)])
+                clause = [posDLiteral(r1,c)]
+                for r2 in profiles(lambda r : iVariants(i,r1,r)):
+                    for j in c:
+                        clause.append(negLiteral(r2,j))
+                        cnf.append([negDLiteral(r1,c), posLiteral(r2,j)])
+                cnf.append(clause)
+    return cnf    
+                
 # Export CNF
     
 def saveCNF(cnf, filename):
