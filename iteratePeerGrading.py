@@ -126,12 +126,19 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     def cnfNegUnanimous():
         """
-        If no one lists i among their top m candidates, i won't be selected (only makes sense if k,m < n
+        For m == n-1: If everyone besides i has i as their lowest candidate, i will not be selected
+        For m != n-1: If no one lists i among their top m candidates, if i is selected, so are all other candidates with nonempty support
         """
         cnf = []
-        for i in allVoters():
-            for r in profiles(lambda r : all(i not in preflist(j, r) for j in voters(lambda j : j != i))):
-                cnf.append([negLiteral(r,i)])
+        if m==n-1:
+            for i in allVoters():
+                for r in profiles(lambda r : all(i == preflist(j, r)[m-1] for j in voters(lambda j : j != i))):
+                    cnf.append([negLiteral(r,i)])
+        else:
+            for i in allVoters():
+                for r in profiles(lambda r : all(i not in preflist(j, r) for j in voters(lambda j : j != i))):
+                    for j in voters(lambda x : any(x in preflist(y,r) for y in allVoters())):
+                        cnf.append([negLiteral(r,i),posLiteral(r,j)])
         return cnf
         
     def cnfPosUnanimous():
@@ -199,7 +206,6 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
         """
         For any set of winners (of size at most k) there is a profile in which one of the voters in this set does not win. 
         """
-
         cnf = []
         for c in list(combinations(allVoters(),k)):
             clause = [negLiteral(r,v) for r in allProfiles() for v in c]

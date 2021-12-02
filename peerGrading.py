@@ -8,13 +8,12 @@
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product
-import scipy.special
 
 
 # Basics: Voters, Profiles
 
 n = 3
-m = 1 # must be < n
+m = 2 # must be < n
 k = 2 # must be < n+1
 
 
@@ -133,12 +132,19 @@ def cnfImpartial():
 
 def cnfNegUnanimous():
     """
-    If no one lists i among their top m candidates, i won't be selected (only makes sense if k,m < n
+    For m == n-1: If everyone besides i has i as their lowest candidate, i will not be selected
+    For m != n-1: If no one lists i among their top m candidates, if i is selected, so are all other candidates with nonempty support
     """
     cnf = []
-    for i in allVoters():
-        for r in profiles(lambda r : all(i not in preflist(j, r) for j in voters(lambda j : j != i))):
-            cnf.append([negLiteral(r,i)])
+    if m==n-1:
+        for i in allVoters():
+            for r in profiles(lambda r : all(i == preflist(j, r)[m-1] for j in voters(lambda j : j != i))):
+                cnf.append([negLiteral(r,i)])
+    else:
+        for i in allVoters():
+            for r in profiles(lambda r : all(i not in preflist(j, r) for j in voters(lambda j : j != i))):
+                for j in voters(lambda x : any(x in preflist(y,r) for y in allVoters())):
+                    cnf.append([negLiteral(r,i),posLiteral(r,j)])
     return cnf
     
 def cnfPosUnanimous():
