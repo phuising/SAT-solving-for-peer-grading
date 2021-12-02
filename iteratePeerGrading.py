@@ -88,40 +88,24 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                     cnf.append(ll)
         return cnf   
 
-   # Impartiality
-
-    """
-    Impartiality assures that a voter cannot influent them being elected or not. Positive impartiality assures that 
-    a voter cannot, by voting untruthfully, make herself elected (i.e. if she is not elected with her truthful preferences then
-    in any i-variant she cannot be elected). Neative impartiality assures that she cannot, by voting untruthfully, make herself
-    not elected i.e. if she is elected with her truthful preferences then in any i-variant she must also be elected)
-    """
+    # Impartiality
 
     def iVariants(i, r1, r2):
         return all(preference(j,r1) == preference(j,r2) for j in voters(lambda j : j!=i))
         
-    def cnfNegImpartial():
+    def cnfImpartial():
+        """
+        Impartiality assures that a voter cannot influence them being elected or not,
+        i.e. if she is elected with her truthful preferences then in any i-variant she must also be elected)
+        """
         cnf = []
         for i in allVoters():
             for r1 in allProfiles():
                 for r2 in profiles(lambda r : iVariants(i,r1,r)):
                     cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)]])
         return cnf
-
-
-    def cnfPosImpartial():
-        cnf = []
-        for i in allVoters():
-            for r1 in allProfiles():
-                for r2 in profiles(lambda r : iVariants(i,r1,r)):
-                    cnf.extend([[posLiteral(r1,i),negLiteral(r2,i)]])
-        return cnf
-
-    def cnfImpartial():
-        cnf = cnfNegImpartial() + cnfPosImpartial()
-        return cnf
-    
         
+            
     # Unanimity
 
     def cnfNegUnanimous():
