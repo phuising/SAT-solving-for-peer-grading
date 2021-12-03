@@ -65,11 +65,13 @@ def posQLiteral(r, c):
 def negQLiteral(r,c):
     return (-1) * posQLiteral(r, c)
 
-def posDLiteral(r,c):
-    return (((comb(n-1,m)*factorial(m)) ** n) * n) + 1 + (len(list(allProfiles())))*comb(n,k) + r * comb(n,k) + list(combinations(allVoters(),k)).index(c)
+def posDLiteral(r1, r2, x):
+    prof = list(allProfiles())
+    return (((comb(n-1,m)*factorial(m)) ** n) * n) + 1 + (len(prof))*comb(n,k) + \
+     x * (len(prof)**2) + list(product(prof, prof)).index((r1,r2))
 
-def negDLiteral(r,c):
-    return (-1) * posDLiteral(r, c)
+def negDLiteral(r1, r2, x):
+    return (-1) * posDLiteral(r1, r2, x)
 
 # Modelling Nomination Rules
 
@@ -251,26 +253,24 @@ def cnfNondictatorial():
 #No dummy 
 
 """
-For every combination of voters there is a profile r for which it is not the case that D_r for any voter i
-
-D_r <-> In every i-Variant of r every voter from c is elected i.e. c is elected.  
+For every voter there there is a profile such that there is a voter j such that j wins in this profile 
+and j does not win in one of its i-Variants. 
+For any voter we add a disjunction of D-variables indexed with  a profile r1 its i-Variant and a voter j 
+which means that j wins in r1 but not in r2. 
 """
 
 def cnfNoDummy():
     cnf = []
-    alt =[]
-    
-    for c in list(combinations(allVoters(),k)):
+    for i in allVoters():
+        clause = []
         for r1 in allProfiles():
-            alt.append(negDLiteral(r1,c))
-            clause = [posDLiteral(r1,c)]
-            for i in allVoters():
-                for r2 in profiles(lambda r : iVariants(i,r1,r)):
-                    for j in c:
-                        clause.append(negLiteral(r2,j))
-                        cnf.append([negDLiteral(r1,c), posLiteral(r2,j)])
-                cnf.append(clause)
-    cnf.append(alt)
+            for r2 in profiles(lambda r : iVariants(i,r1,r)):
+                for j in allVoters():
+                    clause.append(posDLiteral(r1,r2,j))
+                    cnf.append([negDLiteral(r1,r2,j), posLiteral(r1,j)])
+                    cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
+                    cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j,), posLiteral(r2,j)])
+        cnf.append(clause)
     return cnf       
                 
 # Export CNF
