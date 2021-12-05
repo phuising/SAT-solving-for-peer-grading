@@ -244,29 +244,29 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             cnf.append(clause)
         return cnf 
 
-#No dummy 
+    #No dummy 
 
-"""
-For every voter there there is a profile such that there is a voter j such that j wins in this profile 
-and j does not win in one of its i-Variants. 
-For any voter we add a disjunction of D-variables indexed with  a profile r1 its i-Variant and a voter j 
-which means that j wins in r1 but not in r2. 
-"""
+    """
+    For every voter there there is a profile such that there is a voter j such that j wins in this profile 
+    and j does not win in one of its i-Variants. 
+    For any voter we add a disjunction of D-variables indexed with  a profile r1 its i-Variant and a voter j 
+    which means that j wins in r1 but not in r2. 
+    """
 
-def cnfNoDummy():
-    cnf = []
-    for i in allVoters():
-        clause = []
-        for r1 in allProfiles():
-            for r2 in profiles(lambda r : iVariants(i,r1,r)):
-                for j in allVoters():
-                    clause.append(posDLiteral(r1,r2,j))
-                    cnf.append([negDLiteral(r1,r2,j), posLiteral(r1,j)])
-                    cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
-                    cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j,), posLiteral(r2,j)])
-        cnf.append(clause)
-    return cnf                 
-    
+    def cnfNoDummy():
+        cnf = []
+        for i in allVoters():
+            clause = []
+            for r1 in allProfiles():
+                for r2 in profiles(lambda r : iVariants(i,r1,r)):
+                    for j in allVoters():
+                        clause.append(posDLiteral(r1,r2,j))
+                        cnf.append([negDLiteral(r1,r2,j), posLiteral(r1,j)])
+                        cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
+                        cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j), posLiteral(r2,j)])
+            cnf.append(clause)
+        return cnf                 
+
 
     # SAT-solving
     
