@@ -269,7 +269,7 @@ def cnfNoDummy():
                     clause.append(posDLiteral(r1,r2,j))
                     cnf.append([negDLiteral(r1,r2,j), posLiteral(r1,j)])
                     cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
-                    cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j,), posLiteral(r2,j)])
+                    cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j), posLiteral(r2,j)])
         cnf.append(clause)
     return cnf       
                 
