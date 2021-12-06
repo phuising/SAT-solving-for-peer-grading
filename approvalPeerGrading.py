@@ -153,10 +153,22 @@ def cnfCondNegUnanimous():
                 cnf.append([posLiteral(r,i),negLiteral(r,j)])
     return cnf
 
+# Note: complete and positive support can both be defined in terms of approvalScore().
+def approvalScore(r,i):
+    """Returns the number of people that have voted for i."""
+    return len([i for i in voters(lambda j: approves(j,i,r))])
+
+
 def cnfNewUnanimity():
-    """The agents with maximal approval scores are elected. There is no one who is elected while there is an agent with a lower approval
-    score who is not elected."""
-    pass
+    """The agents with maximal approval scores are elected. There is no one who is elected while there is an agent with a higher approval
+    score who is not elected. I.e., for any agent i, and agent j with a lower approval score, 
+    if the former is not elected, nor is the latter"""
+    cnf = []
+    for r in allApprovalProfiles():
+        for i in allVoters():
+            for j in voters(lambda k: approvalScore(r,i) > approvalScore(r,k)):
+                cnf.append([posLiteral(r,i),negLiteral(r,j)])
+    return cnf
 
 
 ## TESTING ########################################################################################################################

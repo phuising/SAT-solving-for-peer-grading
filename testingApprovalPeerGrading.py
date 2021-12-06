@@ -9,17 +9,19 @@ def prettyProfile(r):
         pretty += f"\n\tVoter {i}: {list(approvalSet(i,r))}"
     return pretty
 
-# # Check that completeSupport works.
-# for r in allApprovalProfiles():
-#     comp_support = []
-#     pos_support = []
-#     for i in allVoters():
+# Check that completeSupport works.
+for r in allApprovalProfiles():
+    comp_support = []
+    pos_support = []
+    print(prettyProfile(r))
+    for i in allVoters():
 #         if positiveSupport(r,i):
 #             pos_support.append(i)
 #             if completeSupport(r,i):
 #                 comp_support.append(i)
-    
-#     print(prettyProfile(r) + f"\n\tThe following agents have positive support: {list(pos_support)}.\n\tThe following agents have full support: {list(comp_support)}.")
+        print(f"\tVoter {i}'s approval score: {approvalScore(r,i)}" )
+    # print(prettyProfile(r) + f"\n\tThe following agents have positive support: {list(pos_support)}.\n\tThe following agents have full support: {list(comp_support)}.")
 
 print(len(cnfCondPosUnanimous()))
 print(len(cnfCondNegUnanimous()))
+print(len(cnfNewUnanimity()))
