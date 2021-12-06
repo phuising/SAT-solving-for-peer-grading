@@ -154,21 +154,6 @@ def cnfPosUnanimous():
         for r in profiles(lambda r : all(top(j,i,r) for j in voters(lambda j : j != i))):
             cnf.append([posLiteral(r,i)])
     return cnf
-
-def cnfCondPosUnanimous():
-    """No one with incomplete support is while something with complete support is not, i.e. if you have complete support then
-    and there are k or less people with complete support you will be elected. In other words: if someone with incomplete support
-    is in the outcome, then so is everyone with complete support."""
-    pass
-
-def cnfCondNegUnanimous():
-    """If some agent with no support is elected, then everyone with at least one vote is elected as well."""
-    pass
-
-def cnfNewUnanimity():
-    """The agents with maximal approval scores are elected. There is no one who is elected while there is an agent with a lower approval
-    score who is not elected."""
-    pass
     
 # Monotonicity
 
