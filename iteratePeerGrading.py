@@ -6,6 +6,8 @@
 from pylgl import solve, itersolve
 from math import factorial,comb
 from itertools import combinations,permutations,product,chain
+import multiprocessing
+import time
 
 
 def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
@@ -265,10 +267,20 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                         cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
                         cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j), posLiteral(r2,j)])
             cnf.append(clause)
-        return cnf                 
+
 
 
     # SAT-solving
+    def worker_solve(queue,cnf):
+        #res = queue.get()
+        #print("I am here")
+        #res['solvable'] = False#
+        queue.put(isinstance(solve(cnf),list))
+        
+    def worker_calcCNF(queue,axioms,localVars):
+        for x in axioms:
+            local = locals()
+            queue.put(eval(x,{**local, **localVars}))
     
     if outSize == False:
         outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
@@ -280,15 +292,35 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
     if outSizeLabels == False:
         outSizeLabels = ["0< <=K","<=K","=K"]
     axioms = ax
-    ax = []
-    for x in axioms:
-        ax.append(eval(x))
+    
+    queue = multiprocessing.Queue()
+    local = locals()
+    localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
+    p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,axioms,localVars))
+    p.start()
+    p.join(1200) #time to wait for CNF construction (all CNFs together)
+    if p.is_alive():
+        p.terminate()
+        p.join()
+        return []
+    ax = [queue.get() for x in axioms]
     
     results = []
     for i in range(len(axLabels)):
         for j in range(len(outSizeLabels)):
             cnf = ax[i] + outSize[j]
-            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
+            if not (i==0 and j==0) and any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')])).issubset(axLabels[i]) and 'False' in r for r in results):
+                continue
+                
+            queue = multiprocessing.Queue()
+            p = multiprocessing.Process(target=worker_solve, name="SAT solve", args=(queue,cnf))
+            p.start()
+            p.join(300) #time to wait for SAT solving (one instance)
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                continue
+            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(queue.get()))
     return results
     
 def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
@@ -337,7 +369,7 @@ def giveCombinations(cList):
     """
     Return all possible subsets of size at least 2 of a list
     """
-    return list(chain.from_iterable(combinations(cList, r) for r in range(2,len(cList)+1)))     
+    return list(chain.from_iterable(combinations(cList, r) for r in range(1,len(cList)+1)))     
      
 if __name__ == "__main__":
     # all combinations for all sizes
