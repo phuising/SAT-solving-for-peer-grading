@@ -5,7 +5,7 @@
 
 from pylgl import solve, itersolve
 from math import factorial,comb
-from itertools import combinations,permutations,product,chain
+from itertools import combinations,permutations,product,chain,compress
 import multiprocessing
 import time
 
@@ -272,15 +272,11 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     # SAT-solving
     def worker_solve(queue,cnf):
-        #res = queue.get()
-        #print("I am here")
-        #res['solvable'] = False#
         queue.put(isinstance(solve(cnf),list))
         
-    def worker_calcCNF(queue,axioms,localVars):
-        for x in axioms:
-            local = locals()
-            queue.put(eval(x,{**local, **localVars}))
+    def worker_calcCNF(queue,x,localVars): #first calculate all cnfs, then solve
+        local = locals()
+        queue.put(eval(x+"()",{**local, **localVars}))
     
     if outSize == False:
         outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
@@ -291,19 +287,29 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             outSize.append(eval(x))
     if outSizeLabels == False:
         outSizeLabels = ["0< <=K","<=K","=K"]
-    axioms = ax
     
-    queue = multiprocessing.Queue()
-    local = locals()
-    localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
-    p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,axioms,localVars))
-    p.start()
-    p.join(1200) #time to wait for CNF construction (all CNFs together)
-    if p.is_alive():
-        p.terminate()
-        p.join()
-        return []
-    ax = [queue.get() for x in axioms]
+    # calculate all CNFs occurring in ax first
+    axioms = ax
+    axiomsSet = set([s.strip().replace("()","") for x in axioms for s in x.split("+")])
+    axiomsDict = {}
+    
+    for x in axiomsSet:
+        queue = multiprocessing.Queue()
+        local = locals()
+        localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
+        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars))
+        p.start()
+        p.join(3600) #time to wait for CNF construction (for a single CNF)
+        if p.is_alive():
+            p.terminate()
+            p.join()
+            continue
+        axiomsDict[x] = queue.get()
+        
+    # filter ax for those entries which only make use of CNFs which we were able to compute
+    axList = [[axiomsDict.get(s.strip().replace("()",""),0) for s in x.split("+")] for x in axioms]
+    ax = [[c for y in x for c in y] for x in axList if 0 not in x]
+    axLabels = list(compress(axLabels, [0 not in x for x in axList]))
     
     results = []
     for i in range(len(axLabels)):
@@ -315,7 +321,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             queue = multiprocessing.Queue()
             p = multiprocessing.Process(target=worker_solve, name="SAT solve", args=(queue,cnf))
             p.start()
-            p.join(300) #time to wait for SAT solving (one instance)
+            p.join(3600) #time to wait for SAT solving (one instance)
             if p.is_alive():
                 p.terminate()
                 p.join()
