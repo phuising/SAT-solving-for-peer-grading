@@ -168,5 +168,31 @@ def cnfNewUnanimity():
                 cnf.append([posLiteral(r,i),negLiteral(r,j)])
     return cnf
 
+# Monotonicity
+    
+def cnfMonotonicity():
+    """For any voter i, if i is elected in r1 and r1 and r2 are j-variants, then if j does not approve of i in r1,
+    and j approves of i in r2 besides or instead of some of the approved voters in r1,
+    then i should be among the winners in r2."""
+    cnf = []
+    for i in allVoters():
+        for r1 in allApprovalProfiles():
+            # Consider only those voters that don't approve of i in r1
+            for j in voters(lambda l: l != i and not approves(l,i,r1)):
+                # Consider only those j-variants of r1 in which j votes for i besides/instead of some of the agents approved of in r1
+                for r2 in approvalProfiles(lambda r: iVariants(j,r1,r) and approves(j,i,r) and all(elem in approvalSet(j,r1) for elem in approvalSet(j,r) if elem != i)):
+                    # If i wins in r1, i should win in r2
+                    cnf.append([negLiteral(r1,i),posLiteral(r2,i)])
+    return cnf
 
-## TESTING ########################################################################################################################
+# Anonymity
+
+def cnfAnonymity():
+    """If two profiles agree on the approval scores of all agents, then they should yield they same outcome."""
+    cnf = []
+    for r1 in allApprovalProfiles():
+        # Consider only 'larger' profiles for symmetry breaking.
+        for r2 in approvalProfiles(lambda r: all(approvalScore(r1,i)==approvalScore(r,i) for i in allVoters()) and r>r1):
+            for i in allVoters():
+                cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
+    return cnf
