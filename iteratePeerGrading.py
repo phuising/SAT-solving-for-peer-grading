@@ -321,7 +321,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             queue = multiprocessing.Queue()
             p = multiprocessing.Process(target=worker_solve, name="SAT solve", args=(queue,cnf))
             p.start()
-            p.join(3600) #time to wait for SAT solving (one instance)
+            p.join(600) #time to wait for SAT solving (one instance)
             if p.is_alive():
                 p.terminate()
                 p.join()
