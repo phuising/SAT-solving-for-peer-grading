@@ -42,7 +42,7 @@ def voters(condition):
 def approvalProfiles(condition):
     return [r for r in allApprovalProfiles() if condition(r)]
 
-# Extracting approval sets.
+# Extracting approval sets and related information.
 def approvalIndex(i,r):
     """Each voter has numPossibleBallots() possible ballots. Think of profiles as numbers with n digits in base
     numPossibleBallots(), where the nth digit from the back represents the approval set of voter n in that profile."""
@@ -62,6 +62,18 @@ def approvalSet(i,r):
 def approves(i,j,r):
     """Returns True if i approves of j in profile r and False otherwise."""
     return j in approvalSet(i,r)
+
+def approvalScore(r,i):
+    """Returns the number of people that have voted for i."""
+    return len([i for i in voters(lambda j: approves(j,i,r))])
+
+def completeApproval(r,i):
+    """Returns True if in r every voter other than i approves of i."""
+    return approvalScore(r,i)==n-1
+
+def positiveApproval(r,i):
+    """Returns True if at least one voter in r approves of i."""
+    return approvalScore(r,i)>0
 
 # Literals representing a voter (not) being elected in some profile.
 
@@ -125,39 +137,25 @@ def cnfImpartial():
 
 # Unanimity
 
-def completeSupport(r,i):
-    """Returns True if in r every voter other than i approves of i."""
-    return all(approves(j,i,r) for j in voters(lambda l: l != i))
-
 def cnfCondPosUnanimous():
     """No one with incomplete support is elected while someone with complete support is not.
     In other words for any two agents i and j, where the former has complete support and the latter does not,
     if i is not elected, then neither is j."""
     cnf = []
     for r in allApprovalProfiles():
-        for i in voters(lambda v: completeSupport(r,v)):
-            for j in voters(lambda v: not completeSupport(r,v)):
+        for i in voters(lambda v: completeApproval(r,v)):
+            for j in voters(lambda v: not completeApproval(r,v)):
                 cnf.append([posLiteral(r,i),negLiteral(r,j)])
     return cnf
-
-def positiveSupport(r,i):
-    """Returns True if at least one voter in r approves of i."""
-    return any(approves(j,i,r) for j in voters(lambda l: l != i))
 
 def cnfCondNegUnanimous():
     """If some agent with no support is elected, then everyone with at least one vote is elected as well."""
     cnf = []
     for r in allApprovalProfiles():
-        for i in voters(lambda v: positiveSupport(r,v)):
-            for j in voters(lambda v: not positiveSupport(r,v)):
+        for i in voters(lambda v: positiveApproval(r,v)):
+            for j in voters(lambda v: not positiveApproval(r,v)):
                 cnf.append([posLiteral(r,i),negLiteral(r,j)])
     return cnf
-
-# Note: complete and positive support can both be defined in terms of approvalScore().
-def approvalScore(r,i):
-    """Returns the number of people that have voted for i."""
-    return len([i for i in voters(lambda j: approves(j,i,r))])
-
 
 def cnfNewUnanimity():
     """The agents with maximal approval scores are elected. There is no one who is elected while there is an agent with a higher approval
