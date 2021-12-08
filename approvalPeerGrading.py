@@ -185,17 +185,18 @@ def cnfMonotonicity():
                     cnf.append([negLiteral(r1,i),posLiteral(r2,i)])
     return cnf
 
-# Anonymity
+# Surjectivity/non-imposition
 
-def cnfAnonymity():
-    """If two profiles agree on the approval scores of all agents, then they should yield they same outcome."""
-    cnf = []
-    for r1 in allApprovalProfiles():
-        # Consider only 'larger' profiles for symmetry breaking.
-        for r2 in approvalProfiles(lambda r: all(approvalScore(r1,i)==approvalScore(r,i) for i in allVoters()) and r>r1):
-            for i in allVoters():
-                cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
-    return cnf
+def cnfNoExclusion():
+        """Every voter gets selected in some profile."""
+        cnf = []
+        for i in allVoters():
+            cnf.append([posLiteral(r,i) for r in allApprovalProfiles()])
+        return cnf
+
+# TO DO!
+def cnfSurjective():
+    pass
 
 # Non-constantness
 
@@ -209,3 +210,41 @@ def cnfNonConstant():
             cnf.append([negLiteral(r,v) for r in allApprovalProfiles() for v in c])
         return cnf
 
+# Anonymity
+
+def cnfAnonymity():
+    """If two profiles agree on the approval scores of all agents, then they should yield they same outcome."""
+    cnf = []
+    for r1 in allApprovalProfiles():
+        # Consider only 'larger' profiles for symmetry breaking.
+        for r2 in approvalProfiles(lambda r: all(approvalScore(r1,i)==approvalScore(r,i) for i in allVoters()) and r>r1):
+            for i in allVoters():
+                cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
+    return cnf
+
+# TO DO: consider property of anonymity in iteratePeerGrading.
+def cnfRealAnonymity():
+    pass
+
+# Non-dictatorship
+
+# Question: why do we require that the dictator always be elected? We don't assume elsewhere that agents want to be elected.
+# Also: not finished!
+# def cnfNondictatorial():
+#     """Call i a dictator if the outcome set consists of her approval set with the i substituted for some approved voter.
+#     A rule is non-dictatorial if there is no dictator. Thus we require, for each voter i, there is some profile in which for every subset
+#     of i's approval set with one less member union with {i}, some member of this subset is not elected."""
+#     cnf = []
+#     for i in allVoters():
+#         clause = []
+#         for r in allProfiles():
+#             for j in voters(lambda x : x in preflist(i,r)[:k-1] or x == i):
+#                 clause.append(negLiteral(r,j))
+#         cnf.append(clause)
+#     return cnf 
+
+# No Dummy
+
+# TO DO!
+def cnfNoDummy():
+    pass
