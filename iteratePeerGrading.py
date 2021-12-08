@@ -9,7 +9,6 @@ from itertools import combinations,permutations,product,chain,compress
 import multiprocessing
 import time
 
-
 def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     # Basics: Voters, Profiles
@@ -299,10 +298,13 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
         localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
         p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars))
         p.start()
-        p.join(3600) #time to wait for CNF construction (for a single CNF)
+        p.join(18000) #time to wait for CNF construction (for a single CNF)
         if p.is_alive():
             p.terminate()
             p.join()
+            log = open("log.txt", 'a')
+            log.write(time.strftime("%d-%m-%Y-%H:%M:%S", time.localtime())+" - killed n="+str(n)+", m="+str(m)+", k="+str(k)+" - calc CNF for "+x+'\n')
+            log.close()
             continue
         axiomsDict[x] = queue.get()
         
@@ -325,6 +327,9 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             if p.is_alive():
                 p.terminate()
                 p.join()
+                log = open("log.txt", 'a')
+                log.write(time.strftime("%d-%m-%Y-%H:%M:%S", time.localtime())+" - killed n="+str(n)+", m="+str(m)+", k="+str(k)+" - SAT solving "+str(axLabels[i])+' '+str(outSizeLabels[j])+'\n')
+                log.close()
                 continue
             results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(queue.get()))
     return results
