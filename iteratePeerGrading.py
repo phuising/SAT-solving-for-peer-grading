@@ -268,8 +268,16 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             cnf.append(clause)
 
 
-
     # SAT-solving
+    def saveCNF(cnf, filename):
+        nvars = max([abs(lit) for clause in cnf for lit in clause])
+        nclauses = len(cnf)
+        file = open(filename, 'w')
+        file.write('p cnf ' + str(nvars) + ' ' + str(nclauses) + '\n')
+        for clause in cnf:
+            file.write(' '.join([str(lit) for lit in clause]) + ' 0\n')
+        file.close()
+    
     def worker_solve(queue,cnf):
         queue.put(isinstance(solve(cnf),list))
         
@@ -307,6 +315,9 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             log.close()
             continue
         axiomsDict[x] = queue.get()
+        
+    for x in axiomsSet:
+        saveCNF(axiomsDict.get(x),x+"_"+str(n)+"_"+str(m)+"_"+str(k)+".txt")
         
     # filter ax for those entries which only make use of CNFs which we were able to compute
     axList = [[axiomsDict.get(s.strip().replace("()",""),0) for s in x.split("+")] for x in axioms]
