@@ -3,11 +3,10 @@ import.csv
 
 cnf = [[1],[-1]]
 solver = solve(cnf)
-with open ("data.csv", 'w') as file:
-    writer = csv.DictWriter(file, fieldnames = ['Satisfiability'])
+with open ("data.txt", 'w') as file:
     if solver == 'UNSAT':
-        writer.writerow({'Satisfiability':'UNSAT' })
+        file.write('UNSAT')
     else:
-        writer.writerow({'Satisfiability':'SAT'})
+        file.write('SAT')
         
         
