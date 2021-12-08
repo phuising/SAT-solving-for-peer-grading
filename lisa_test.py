@@ -1,5 +1,4 @@
 from pylgl import solve
-import.csv
 
 cnf = [[1],[-1]]
 solver = solve(cnf)
