@@ -315,7 +315,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
     for i in range(len(axLabels)):
         for j in range(len(outSizeLabels)):
             cnf = ax[i] + outSize[j]
-            if not (i==0 and j==0) and any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')])).issubset(axLabels[i]) and 'False' in r for r in results):
+            if not (i==0 and j==0) and (any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')])).issubset(axLabels[i]) and 'False' in r for r in results) or any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')]))==set(axLabels[i]) for r in results)):
                 continue
                 
             queue = multiprocessing.Queue()
