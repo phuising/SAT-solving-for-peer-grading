@@ -27,3 +27,9 @@ print(len(cnfCondNegUnanimous()))
 print(len(cnfNewUnanimity()))
 print(len(cnfAnonymity()))
 print(len(cnfMonotonicity()))
+print(len(cnfNonConstant()))
+
+clause_counter = 1
+for clause in cnfNonConstant():
+    print(f"Clause {clause_counter} has {len(clause)} disjuncts.")
+    clause_counter += 1

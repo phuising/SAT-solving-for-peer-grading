@@ -199,11 +199,13 @@ def cnfAnonymity():
 
 # Non-constantness
 
-# QUESTION: why do we care about a sets of winners? It is enough to consider voters, rather than sets of voters.
+# Question: Is it the case that this only deals with outcomes of size k, not outcomes of size up to k?
 def cnfNonConstant():
-        """For any voter there is a profile in which this voter is not elected."""
+        """For any set of k agents, there is a profile in which one of these agents loses.
+        Note: saying that each should lose in some profile is a stronger requirement, for it is possible that the same agent gets elected
+        in every profile even though not all profiles have an identical outcome."""
         cnf = []
-        for i in allVoters():
-            cnf.append([negLiteral(i,r) for r in allApprovalProfiles()])
+        for c in list(combinations(allVoters(),k)):
+            cnf.append([negLiteral(r,v) for r in allApprovalProfiles() for v in c])
         return cnf
 
