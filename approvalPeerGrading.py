@@ -196,3 +196,14 @@ def cnfAnonymity():
             for i in allVoters():
                 cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
     return cnf
+
+# Non-constantness
+
+# QUESTION: why do we care about a sets of winners? It is enough to consider voters, rather than sets of voters.
+def cnfNonConstant():
+        """For any voter there is a profile in which this voter is not elected."""
+        cnf = []
+        for i in allVoters():
+            cnf.append([negLiteral(i,r) for r in allApprovalProfiles()])
+        return cnf
+
