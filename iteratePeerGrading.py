@@ -9,7 +9,7 @@ from itertools import combinations,permutations,product,chain,compress
 import multiprocessing
 import time
 
-def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
+def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
 
     # Basics: Voters, Profiles
     
@@ -316,8 +316,10 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             continue
         axiomsDict[x] = queue.get()
         
-    for x in axiomsSet:
-        saveCNF(axiomsDict.get(x),x+"_"+str(n)+"_"+str(m)+"_"+str(k)+".txt")
+    # save CNFs to files
+    if save == True:
+        for x in axiomsSet:
+            saveCNF(axiomsDict.get(x),x+"_"+str(n)+"_"+str(m)+"_"+str(k)+".txt")
         
     # filter ax for those entries which only make use of CNFs which we were able to compute
     axList = [[axiomsDict.get(s.strip().replace("()",""),0) for s in x.split("+")] for x in axioms]
@@ -345,7 +347,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(queue.get()))
     return results
     
-def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="peerGrading.txt",save=False):
     """
     Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
     and different allowed sizes of the outcome set.
@@ -377,7 +379,7 @@ def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLa
                 file.write(str(n)+','+str(m)+','+str(k)+':\n')   
                 print(str(n)+','+str(m)+','+str(k)+': ')
                 
-                for r in main(n,m,k,ax,axLabels,outSize,outSizeLabels):
+                for r in main(n,m,k,ax,axLabels,outSize,outSizeLabels,save):
                     file.write(r +'\n') 
                     print(r)
                     

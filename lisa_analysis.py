@@ -19,4 +19,4 @@ axComb = giveCombinations(["cnfMonotonous()","cnfNoExclusion()","cnfNondictatori
 axCnf = ["cnfImpartial()+cnfNegUnanimous()+cnfPosUnanimous()"] + ["cnfImpartial()+cnfNegUnanimous()+cnfPosUnanimous()+"+"+".join(combination) for combination in axComb] 
 axComb = giveCombinations(["cnfMonotonous()","cnfNoExclusion()","cnfNondictatorial()","cnfPosUnanimous()","cnfNegUnanimous()","cnfSurjective()"])
 axCnf = axCnf + ["cnfImpartial()+cnfAnonymous()+cnfNonConstant()"] + ["cnfImpartial()+cnfAnonymous()+cnfNonConstant()+"+"+".join(combination) for combination in axComb] 
-iterate(nRange=range(3,8),ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"],filename="holzman_thms_extensions.txt")
+iterate(nRange=range(3,8),ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"],filename="holzman_thms_extensions.txt",save=True)
