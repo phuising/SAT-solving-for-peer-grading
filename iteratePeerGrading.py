@@ -5,10 +5,11 @@
 
 from pylgl import solve, itersolve
 from math import factorial,comb
-from itertools import combinations,permutations,product,chain
+from itertools import combinations,permutations,product,chain,compress
+import multiprocessing
+import time
 
-
-def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
+def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
 
     # Basics: Voters, Profiles
     
@@ -265,10 +266,24 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                         cnf.append([negDLiteral(r1,r2,j), negLiteral(r2,j)])
                         cnf.append([posDLiteral(r1,r2,j), negLiteral(r1,j), posLiteral(r2,j)])
             cnf.append(clause)
-        return cnf                 
 
 
     # SAT-solving
+    def saveCNF(cnf, filename):
+        nvars = max([abs(lit) for clause in cnf for lit in clause])
+        nclauses = len(cnf)
+        file = open(filename, 'w')
+        file.write('p cnf ' + str(nvars) + ' ' + str(nclauses) + '\n')
+        for clause in cnf:
+            file.write(' '.join([str(lit) for lit in clause]) + ' 0\n')
+        file.close()
+    
+    def worker_solve(queue,cnf):
+        queue.put(isinstance(solve(cnf),list))
+        
+    def worker_calcCNF(queue,x,localVars): #first calculate all cnfs, then solve
+        local = locals()
+        queue.put(eval(x+"()",{**local, **localVars}))
     
     if outSize == False:
         outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
@@ -279,19 +294,60 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             outSize.append(eval(x))
     if outSizeLabels == False:
         outSizeLabels = ["0< <=K","<=K","=K"]
+    
+    # calculate all CNFs occurring in ax first
     axioms = ax
-    ax = []
-    for x in axioms:
-        ax.append(eval(x))
+    axiomsSet = set([s.strip().replace("()","") for x in axioms for s in x.split("+")])
+    axiomsDict = {}
+    
+    for x in axiomsSet:
+        queue = multiprocessing.Queue()
+        local = locals()
+        localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
+        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars))
+        p.start()
+        p.join(18000) #time to wait for CNF construction (for a single CNF)
+        if p.is_alive():
+            p.terminate()
+            p.join()
+            log = open("log.txt", 'a')
+            log.write(time.strftime("%d-%m-%Y-%H:%M:%S", time.localtime())+" - killed n="+str(n)+", m="+str(m)+", k="+str(k)+" - calc CNF for "+x+'\n')
+            log.close()
+            continue
+        axiomsDict[x] = queue.get()
+        
+    # save CNFs to files
+    if save == True:
+        for x in axiomsSet:
+            saveCNF(axiomsDict.get(x),x+"_"+str(n)+"_"+str(m)+"_"+str(k)+".txt")
+        
+    # filter ax for those entries which only make use of CNFs which we were able to compute
+    axList = [[axiomsDict.get(s.strip().replace("()",""),0) for s in x.split("+")] for x in axioms]
+    ax = [[c for y in x for c in y] for x in axList if 0 not in x]
+    axLabels = list(compress(axLabels, [0 not in x for x in axList]))
     
     results = []
     for i in range(len(axLabels)):
         for j in range(len(outSizeLabels)):
             cnf = ax[i] + outSize[j]
-            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
+            if not (i==0 and j==0) and (any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')])).issubset(axLabels[i]) and 'False' in r for r in results) or any(set(tuple([s.replace("'","") for s in r[r.find('(')+1:r.find(')')].split(', ')]))==set(axLabels[i]) for r in results)):
+                continue
+                
+            queue = multiprocessing.Queue()
+            p = multiprocessing.Process(target=worker_solve, name="SAT solve", args=(queue,cnf))
+            p.start()
+            p.join(600) #time to wait for SAT solving (one instance)
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                log = open("log.txt", 'a')
+                log.write(time.strftime("%d-%m-%Y-%H:%M:%S", time.localtime())+" - killed n="+str(n)+", m="+str(m)+", k="+str(k)+" - SAT solving "+str(axLabels[i])+' '+str(outSizeLabels[j])+'\n')
+                log.close()
+                continue
+            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(queue.get()))
     return results
     
-def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="./test_results/peerGrading.txt"):
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="peerGrading.txt",save=False):
     """
     Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
     and different allowed sizes of the outcome set.
@@ -323,7 +379,7 @@ def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLa
                 file.write(str(n)+','+str(m)+','+str(k)+':\n')   
                 print(str(n)+','+str(m)+','+str(k)+': ')
                 
-                for r in main(n,m,k,ax,axLabels,outSize,outSizeLabels):
+                for r in main(n,m,k,ax,axLabels,outSize,outSizeLabels,save):
                     file.write(r +'\n') 
                     print(r)
                     
@@ -337,7 +393,7 @@ def giveCombinations(cList):
     """
     Return all possible subsets of size at least 2 of a list
     """
-    return list(chain.from_iterable(combinations(cList, r) for r in range(2,len(cList)+1)))     
+    return list(chain.from_iterable(combinations(cList, r) for r in range(1,len(cList)+1)))     
      
 if __name__ == "__main__":
     # all combinations for all sizes
