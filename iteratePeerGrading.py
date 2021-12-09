@@ -156,7 +156,6 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
         """
         If agent i is selected and only agent i either gets ranked higher by an agent or newly gets into the top m of an agent, agent i is still selected
         """
-        cc=0
         cnf = []
         for i in allVoters():
             for r1 in allProfiles():
@@ -167,8 +166,6 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
                     (preflist(j,r).index(i) == preflist(j,r1).index(i)-1) and\
                     all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1])]:         
                         cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
-                    cc +=1
-                    print(cc)
                         
 
         for i in allVoters():
@@ -179,8 +176,6 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
                     for r2 in profiles(lambda r : iVariants(j,r1,r) and preflist(j,r)[:m-2] == preflist(j,r1)[:m-2] and\
                     preflist(j,r)[m-1] == i): 
                         cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
-                    cc +=1
-                    print(cc)
         return cnf
 
     # Surjectivity/Non-imposition
