@@ -3,6 +3,6 @@
 #SBATCH -t 24:00:00
 echo start of job
 cd 
-cd peerGrading/SAT-solving-for-peer-grading
+cd SAT-solving-for-peer-grading
 python3 lisa_analysis.py
 echo end of job
