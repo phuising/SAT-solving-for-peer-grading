@@ -4,5 +4,5 @@
 echo start of job
 cd 
 cd peerGrading/SAT-solving-for-peer-grading
-python3 iteratePeerGrading.py
+python3 lisa_analysis.py
 echo end of job
