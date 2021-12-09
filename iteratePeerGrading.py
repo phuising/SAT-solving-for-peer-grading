@@ -281,7 +281,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
     def worker_solve(queue,cnf):
         queue.put(isinstance(solve(cnf),list))
         
-    def worker_calcCNF(queue,x,localVars,return_dict): #first calculate all cnfs, then solve
+    def worker_calcCNF(x,localVars,return_dict): #first calculate all cnfs, then solve
         print("currently calculating " + str(x))
         local = locals()
         return_dict[x]=eval(x+"()",{**local, **localVars})
@@ -303,13 +303,11 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
     axiomsDict = {}
     
     for x in axiomsSet:
-        queue = multiprocessing.Queue()
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
         local = locals()
         localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
-        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars,return_dict))
-        start = time.time()
+        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(x,localVars,return_dict))
         p.start()
         p.join(18000) #time to wait for CNF construction (for a single CNF)
         if p.is_alive():
