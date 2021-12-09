@@ -156,6 +156,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
         """
         If agent i is selected and only agent i either gets ranked higher by an agent or newly gets into the top m of an agent, agent i is still selected
         """
+        cc=0
         cnf = []
         for i in allVoters():
             for r1 in allProfiles():
@@ -166,6 +167,8 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
                     (preflist(j,r).index(i) == preflist(j,r1).index(i)-1) and\
                     all(preflist(j,r)[x] == preflist(j,r1)[x] for x in range(m) if x not in [preflist(j,r).index(i),preflist(j,r).index(i)+1])]:         
                         cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
+                    cc +=1
+                    print(cc)
                         
 
         for i in allVoters():
@@ -176,6 +179,8 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
                     for r2 in profiles(lambda r : iVariants(j,r1,r) and preflist(j,r)[:m-2] == preflist(j,r1)[:m-2] and\
                     preflist(j,r)[m-1] == i): 
                         cnf.append([negLiteral(r1,i), posLiteral(r2,i)])
+                    cc +=1
+                    print(cc)
         return cnf
 
     # Surjectivity/Non-imposition
@@ -281,9 +286,11 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
     def worker_solve(queue,cnf):
         queue.put(isinstance(solve(cnf),list))
         
-    def worker_calcCNF(queue,x,localVars): #first calculate all cnfs, then solve
+    def worker_calcCNF(queue,x,localVars,return_dict): #first calculate all cnfs, then solve
+        print("currently calculating " + str(x))
         local = locals()
-        queue.put(eval(x+"()",{**local, **localVars}))
+        return_dict[x]=eval(x+"()",{**local, **localVars})
+
     
     if outSize == False:
         outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
@@ -302,9 +309,12 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
     
     for x in axiomsSet:
         queue = multiprocessing.Queue()
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
         local = locals()
         localVars = {key: local.get(key) for key in ['cnfAnonymous','cnfImpartial','cnfMonotonous','cnfNegUnanimous','cnfNoDummy','cnfNoExclusion','cnfNonConstant','cnfNondictatorial','cnfPosUnanimous','cnfSurjective']}
-        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars))
+        p = multiprocessing.Process(target=worker_calcCNF, name="calculate CNF", args=(queue,x,localVars,return_dict))
+        start = time.time()
         p.start()
         p.join(18000) #time to wait for CNF construction (for a single CNF)
         if p.is_alive():
@@ -314,7 +324,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels,save=False):
             log.write(time.strftime("%d-%m-%Y-%H:%M:%S", time.localtime())+" - killed n="+str(n)+", m="+str(m)+", k="+str(k)+" - calc CNF for "+x+'\n')
             log.close()
             continue
-        axiomsDict[x] = queue.get()
+        axiomsDict[x] = return_dict[x]
         
     # save CNFs to files
     if save == True:
