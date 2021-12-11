@@ -11,7 +11,7 @@ from itertools import chain, combinations
 
 # Initiate values.
 n = 3 # number of voters
-m = 2 # number of agents that can maximally be approved of
+m = 1 # number of agents that can maximally be approved of
 k = 1 # number of agents selected
 
 ## BASICS ############################################################################################################################
@@ -188,27 +188,23 @@ def cnfMonotonicity():
 # Surjectivity/non-imposition
 
 def cnfNoExclusion():
-        """Every voter gets selected in some profile."""
-        cnf = []
-        for i in allVoters():
-            cnf.append([posLiteral(r,i) for r in allApprovalProfiles()])
-        return cnf
-
-# TO DO!
-def cnfSurjective():
-    pass
+    """Every voter gets selected in some profile."""
+    cnf = []
+    for i in allVoters():
+        cnf.append([posLiteral(r,i) for r in allApprovalProfiles()])
+    return cnf
 
 # Non-constantness
 
 # Question: Is it the case that this only deals with outcomes of size k, not outcomes of size up to k?
 def cnfNonConstant():
-        """For any set of k agents, there is a profile in which one of these agents loses.
-        Note: saying that each should lose in some profile is a stronger requirement, for it is possible that the same agent gets elected
-        in every profile even though not all profiles have an identical outcome."""
-        cnf = []
-        for c in list(combinations(allVoters(),k)):
-            cnf.append([negLiteral(r,v) for r in allApprovalProfiles() for v in c])
-        return cnf
+    """For any set of k agents, there is a profile in which one of these agents loses.
+    Note: saying that each should lose in some profile is a stronger requirement, for it is possible that the same agent gets elected
+    in every profile even though not all profiles have an identical outcome."""
+    cnf = []
+    for c in list(combinations(allVoters(),k)):
+        cnf.append([negLiteral(r,v) for r in allApprovalProfiles() for v in c])
+    return cnf
 
 # Anonymity
 
@@ -222,29 +218,33 @@ def cnfAnonymity():
                 cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
     return cnf
 
-# TO DO: consider property of anonymity in iteratePeerGrading.
-def cnfRealAnonymity():
+###########
+## TO DO ##
+###########
+
+# (Coalitional) surjectivity
+def cnfSurjective():
     pass
 
 # Non-dictatorship
-
-# Question: why do we require that the dictator always be elected? We don't assume elsewhere that agents want to be elected.
+# NOTE FINISHED. Two issues: 
+    # 1. Why do we require that the dictator always be elected? We don't assume elsewhere that agents want to be elected.
+    # 2. What happens when k>m?
 # Also: not finished!
-# def cnfNondictatorial():
-#     """Call i a dictator if the outcome set consists of her approval set with the i substituted for some approved voter.
-#     A rule is non-dictatorial if there is no dictator. Thus we require, for each voter i, there is some profile in which for every subset
-#     of i's approval set with one less member union with {i}, some member of this subset is not elected."""
-#     cnf = []
-#     for i in allVoters():
-#         clause = []
-#         for r in allProfiles():
-#             for j in voters(lambda x : x in preflist(i,r)[:k-1] or x == i):
-#                 clause.append(negLiteral(r,j))
-#         cnf.append(clause)
-#     return cnf 
+def cnfNondictatorial():
+    """Call i a dictator if the outcome set consists of her approval set with the i substituted for some approved voter.
+    A rule is non-dictatorial if there is no dictator. Thus we require, for each voter i, there is some profile in which for every subset
+    of i's approval set with one less member union with {i}, some member of this subset is not elected."""
+    pass
+    # cnf = []
+    # for i in allVoters():
+    #     clause = []
+    #     for r in allProfiles():
+    #         for j in voters(lambda x : x in preflist(i,r)[:k-1] or x == i):
+    #             clause.append(negLiteral(r,j))
+    #     cnf.append(clause)
+    # return cnf 
 
-# No Dummy
-
-# TO DO!
+# No dummy
 def cnfNoDummy():
     pass
