@@ -1,0 +1,25 @@
+3,1,1:
+I, A, NE: False
+I, strong-A, NE: False
+I, CNU, CPU: False
+
+3,2,1:
+I, A, NE: False
+I, strong-A, NE: False
+I, CNU, CPU: False
+
+3,1,2:
+I, A, NE: False
+I, strong-A, NE: False
+I, CNU, CPU: False
+
+3,2,2:
+I, A, NE: True
+I, strong-A, NE: False
+I, CNU, CPU: False
+
+4,1,1:
+I, A, NE: False
+I, strong-A, NE: False
+I, CNU, CPU: False
+
