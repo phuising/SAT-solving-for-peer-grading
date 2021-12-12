@@ -169,7 +169,6 @@ def cnfNewUnanimity():
     return cnf
 
 # Monotonicity
-    
 def cnfMonotonicity():
     """For any voter i, if i is elected in r1 and r1 and r2 are j-variants, then if j does not approve of i in r1,
     and j approves of i in r2 besides or instead of some of the approved voters in r1,
@@ -179,8 +178,8 @@ def cnfMonotonicity():
         for r1 in allApprovalProfiles():
             # Consider only those voters that don't approve of i in r1
             for j in voters(lambda l: l != i and not approves(l,i,r1)):
-                # Consider only those j-variants of r1 in which j votes for i besides/instead of some of the agents approved of in r1
-                for r2 in approvalProfiles(lambda r: iVariants(j,r1,r) and approves(j,i,r) and all(elem in approvalSet(j,r1) for elem in approvalSet(j,r) if elem != i)):
+                # Consider only those j-variants of r1 in which j adds an extra approval of i or approves of i instead of some other agent.
+                for r2 in approvalProfiles(lambda r: iVariants(j,r1,r) and approves(j,i,r) and len(approvalSet(j,r))>=len(approvalSet(j,r1)) and all(elem in approvalSet(j,r1) for elem in approvalSet(j,r) if elem != i)):
                     # If i wins in r1, i should win in r2
                     cnf.append([negLiteral(r1,i),posLiteral(r2,i)])
     return cnf
@@ -196,11 +195,10 @@ def cnfNoExclusion():
 
 # Non-constantness
 
-# Question: Is it the case that this only deals with outcomes of size k, not outcomes of size up to k?
 def cnfNonConstant():
     """For any set of k agents, there is a profile in which one of these agents loses.
     Note: saying that each should lose in some profile is a stronger requirement, for it is possible that the same agent gets elected
-    in every profile even though not all profiles have an identical outcome."""
+    in every profile even though not all profiles have an identical outcome. Also: only applicable when outcome is of size exactly k."""
     cnf = []
     for c in list(combinations(allVoters(),k)):
         cnf.append([negLiteral(r,v) for r in allApprovalProfiles() for v in c])
@@ -208,12 +206,26 @@ def cnfNonConstant():
 
 # Anonymity
 
-def cnfAnonymity():
+def cnfApprovalScoreAnonymity():
     """If two profiles agree on the approval scores of all agents, then they should yield they same outcome."""
     cnf = []
     for r1 in allApprovalProfiles():
         # Consider only 'larger' profiles for symmetry breaking.
         for r2 in approvalProfiles(lambda r: all(approvalScore(r1,i)==approvalScore(r,i) for i in allVoters()) and r>r1):
+            for i in allVoters():
+                cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
+    return cnf
+
+def vPermutation(r1, r2):
+    """Return True if r1 and r2 contain exactly the same approval ballots."""
+    return sorted([approvalSet(i,r1) for i in allVoters()]) == sorted([approvalSet(j,r2) for j in allVoters()])
+
+def cnfAnonymity():
+    """If the same ballots are submitted in two profiles (but by different voters), then the outcome should be the same."""
+    cnf = []
+    for r1 in allProfiles():
+        # Consider all the vPermutations of r1 (that are larger than r1 for symmetry breaking).
+        for r2 in profiles(lambda r : vPermutation(r,r1) and r>r1):
             for i in allVoters():
                 cnf.extend([[negLiteral(r1,i),posLiteral(r2,i)],[posLiteral(r1,i),negLiteral(r2,i)]])
     return cnf

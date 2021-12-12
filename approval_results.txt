@@ -1,21 +1,31 @@
 3,1,1:
-I,NU,PU =K: False
 I,A,NE =K: False
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
 
 3,2,1:
-I,NU,PU =K: False
 I,A,NE =K: False
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
 
 3,1,2:
-I,NU,PU =K: False
 I,A,NE =K: False
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
 
 3,2,2:
-I,NU,PU =K: False
-I,A,NE =K: False
+I,A,NE =K: True
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
 
 4,1,1:
-I,NU,PU =K: False
 I,A,NE =K: False
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
 
 4,2,1:
+I,A,NE =K: True
+I,strong-A,NE =K: False
+I,CNU,CPU =K: False
+
+4,3,1:

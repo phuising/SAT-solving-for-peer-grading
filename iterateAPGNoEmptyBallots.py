@@ -2,6 +2,8 @@
 # Peer Grading
 # On the basis of Holzman, Moulin - Impartial Nominations for a Prize
 
+"""File for running sat instances over multiple combinations of parameters in one go."""
+
 
 from pylgl import solve, itersolve
 from math import factorial,comb
@@ -18,11 +20,11 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     def numPossibleBallots():
         """Returns the number of possible ballots that a voter can submit given the limit of m approvals. 
-        Note that a voter may submit an empty ballot."""
+        Note that a voter may *not* submit an empty ballot.."""
         # Check for each permissible size of subset how many combinations of n-1 voters
         # there are with that size. Sum to find total amount of permissible ballots per voter.
         num_possible_ballots = 0
-        for size in range(m+1):
+        for size in range(1, m+1):
             num_possible_ballots += comb(n-1,size)
         return num_possible_ballots
 
@@ -45,9 +47,9 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     def approvalSet(i,r):
         """Return the approval ballot submitted by voter i in profile r."""
-        # Construct list of all possible ballots.
+        # Construct list of all possible ballots (excluding empty ballots).
         possible_ballots = []
-        for set_size in range(m+1):
+        for set_size in range(1, m+1):
             # Add each combination of set_size voters as a list to possible_ballots.
             for approval_set in [list(x) for x in list(combinations(voters(lambda j: j != i),set_size))]:
                 possible_ballots.append(approval_set)
@@ -179,7 +181,7 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
                         # If i wins in r1, i should win in r2
                         cnf.append([negLiteral(r1,i),posLiteral(r2,i)])
         return cnf
-   
+
     # Surjectivity/non-imposition
 
     def cnfNoExclusion():
@@ -229,6 +231,8 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     ## SAT-solving #################################################################################
     
+    # SAT-solving for general framework (less efficient for only Holzamn impossibilities)
+    '''
     # If outSize isn't specified, then consider 3 options for outcome sizes.
     if outSize == False:
         outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
@@ -257,9 +261,24 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
             # add to list of results strings specifying the axioms, outsize constraints and 'True' if combination is satisfiable
             # and 'False' if it is not 
             results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
+    return results'''
+
+    # SAT-solving specifically for Holzman instances.
+    cnf_exactly_k = cnfAtLeastK()+cnfAtMostK()
+    cnf_impartial = cnfImpartial()
+    cnf_no_exclusion = cnfNoExclusion()
+    results = []
+    # Holzman 1:
+    results.append('I, A, NE: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfAnonymity()+cnf_no_exclusion),list)))
+    # Holzman 1, with stronger anonymity.
+    results.append('I, strong-A, NE: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfApprovalScoreAnonymity()+cnf_no_exclusion),list)))
+    # Holzman 2:
+    results.append('I, CNU, CPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfCondNegUnanimous()+cnfCondPosUnanimous()),list)))
+
     return results
-    
-def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="approval_results.txt"):
+
+
+def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="approval_results_no_empty_ballots.txt"):
     """
     Iterate the peer grading SAT solving for multiple values of n, m, k, different combinations of axioms 
     and different allowed sizes of the outcome set.
@@ -307,13 +326,12 @@ def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLa
                 # when considering the next set of parameters
                 count += 1
 
+
 # Execution of code
 # if __name__ == "__main__" guarantees that we're using the function defined in this file and not from some other imported module
 if __name__ == "__main__":
     # Both Holzman-Moulin impossibilities for size =k
-    axDesc = ["I,A,NE","I,strong-A,NE","I,CNU,CPU"]
-    axCnf = ["cnfImpartial()+cnfAnonymity()+cnfNoExclusion()","cnfImpartial()+cnfApprovalScoreAnonymity()+cnfNoExclusion()","cnfImpartial()+cnfCondNegUnanimous()+cnfCondPosUnanimous()"]
-    iterate(nRange=range(3,5),ax=axCnf,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"])
+    iterate(nRange=range(3,5),ax=[],axLabels=[])
     
     # # single instance
     # axDesc = ["I,NU,PU"]
