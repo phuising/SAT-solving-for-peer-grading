@@ -285,13 +285,13 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
     # Initialize list of results
     results = []
     # Check that all axioms are satisfiable.
-    results.append('INDIVIDUAL AXIOMS\n\tI: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial,list)))
-    results.append('\tstrong-A: ' + str(isinstance(solve(cnf_exactly_k+cnf_strong_anonymous,list)))
-    results.append('\tNC: ' + str(isinstance(solve(cnf_exactly_k+cnf_non_constant,list)))
-    results.append('\tCNU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condnegunanimous,list)))
-    results.append('\tCPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condposunanimous,list)))
+    results.append('INDIVIDUAL AXIOMS\n\tI: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial),list)))
+    results.append('\tstrong-A: ' + str(isinstance(solve(cnf_exactly_k+cnf_strong_anonymous),list)))
+    results.append('\tNC: ' + str(isinstance(solve(cnf_exactly_k+cnf_non_constant),list)))
+    results.append('\tCNU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condnegunanimous),list)))
+    results.append('\tCPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condposunanimous),list)))
     # Check subsets of theorem 3
-    results.append('THEOREM 3\n\tI, strong-A' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_strong_anonymous),list)))
+    results.append('THEOREM 3\n\tI, strong-A: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_strong_anonymous),list)))
     results.append('\tI, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_non_constant),list)))
     results.append('\tstrong-A, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_strong_anonymous+cnf_non_constant),list)))
     # Check subsets of theorem 4
