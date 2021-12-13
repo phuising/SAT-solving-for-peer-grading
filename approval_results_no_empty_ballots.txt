@@ -1,25 +1,59 @@
+Results for Holzman th. 3 with anonymity and approval score anonymity.
+
 3,1,1:
-I, A, NE: False
-I, strong-A, NE: False
-I, CNU, CPU: False
+I,A,NC =K: False
+I,strong-A,NC =K: False
 
 3,2,1:
-I, A, NE: False
-I, strong-A, NE: False
-I, CNU, CPU: False
+I,A,NC =K: True
+I,strong-A,NC =K: False
 
 3,1,2:
-I, A, NE: False
-I, strong-A, NE: False
-I, CNU, CPU: False
+I,A,NC =K: False
+I,strong-A,NC =K: False
 
 3,2,2:
-I, A, NE: True
-I, strong-A, NE: False
-I, CNU, CPU: False
+I,A,NC =K: True
+I,strong-A,NC =K: False
 
 4,1,1:
-I, A, NE: False
-I, strong-A, NE: False
-I, CNU, CPU: False
+I,A,NC =K: False
+I,strong-A,NC =K: False
 
+4,2,1:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+4,3,1:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+4,1,2:
+I,A,NC =K: False
+I,strong-A,NC =K: False
+
+4,2,2:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+4,3,2:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+4,1,3:
+I,A,NC =K: False
+I,strong-A,NC =K: False
+
+4,2,3:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+4,3,3:
+I,A,NC =K: True
+I,strong-A,NC =K: False
+
+5,1,1:
+I,A,NC =K: False
+I,strong-A,NC =K: False
+
+5,2,1:

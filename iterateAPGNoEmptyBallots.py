@@ -194,7 +194,8 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
     # Non-constantness
 
     def cnfNonConstant():
-        """For any set of k agents, there is a profile in which one of these agents loses.
+        """For any set of k agents, there is a profile in which this set is not elected, i.e., 
+        there is a profile in which one of these agents loses.
         Note: saying that each agent should lose in some profile is a stronger requirement, for it is possible that the same 
         agent gets elected in every profile even though not all profiles have an identical outcome. 
         Also: only applicable when outcome is of size exactly k."""
@@ -231,52 +232,74 @@ def main(n,m,k,ax,axLabels,outSize,outSizeLabels):
 
     ## SAT-solving #################################################################################
     
-    # SAT-solving for general framework (less efficient for only Holzamn impossibilities)
-    '''
-    # If outSize isn't specified, then consider 3 options for outcome sizes.
-    if outSize == False:
-        outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
-    else:
-        sizes = outSize
-        # create new list in which the functions represented in strings are executed, i.e.,
-        # create list with CNF corresponding to axioms represented as strings in ouSize
-        outSize = []
-        for x in sizes:
-            outSize.append(eval(x))
-    # If not outSize labels are provided, then provide the 3 options.
-    if outSizeLabels == False:
-        outSizeLabels = ["0< <=K","<=K","=K"]
-    # Create list with CNFs corresponding to the axioms represented as strings in ax.
-    axioms = ax
-    ax = []
-    for x in axioms:
-        ax.append(eval(x))
-    # Output results
-    results = []
-    # Consider each combination of axioms and outcome sizes.
-    for i in range(len(axLabels)):
-        for j in range(len(outSizeLabels)):
-            # create cnf for particular combination of axioms and outcome size
-            cnf = ax[i] + outSize[j]
-            # add to list of results strings specifying the axioms, outsize constraints and 'True' if combination is satisfiable
-            # and 'False' if it is not 
-            results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
-    return results'''
+    # # SAT-solving for general framework (less efficient for only Holzamn impossibilities)
+    # # If outSize isn't specified, then consider 3 options for outcome sizes.
+    # if outSize == False:
+    #     outSize = [cnfAtLeastOne()+cnfAtMostK(),cnfAtMostK(),cnfAtLeastK()+cnfAtMostK()]
+    # else:
+    #     sizes = outSize
+    #     # create new list in which the functions represented in strings are executed, i.e.,
+    #     # create list with CNF corresponding to axioms represented as strings in ouSize
+    #     outSize = []
+    #     for x in sizes:
+    #         outSize.append(eval(x))
+    # # If not outSize labels are provided, then provide the 3 options.
+    # if outSizeLabels == False:
+    #     outSizeLabels = ["0< <=K","<=K","=K"]
+    # # Create list with CNFs corresponding to the axioms represented as strings in ax.
+    # axioms = ax
+    # ax = []
+    # for x in axioms:
+    #     ax.append(eval(x))
+    # # Output results
+    # results = []
+    # # Consider each combination of axioms and outcome sizes.
+    # for i in range(len(axLabels)):
+    #     for j in range(len(outSizeLabels)):
+    #         # create cnf for particular combination of axioms and outcome size
+    #         cnf = ax[i] + outSize[j]
+    #         # add to list of results strings specifying the axioms, outsize constraints and 'True' if combination is satisfiable
+    #         # and 'False' if it is not 
+    #         results.append(str(axLabels[i])+' '+str(outSizeLabels[j])+': '+ str(isinstance(solve(cnf),list)))
 
-    # SAT-solving specifically for Holzman instances.
+    # # SAT-solving specifically for Holzman instances.
+    # cnf_exactly_k = cnfAtLeastK()+cnfAtMostK()
+    # cnf_impartial = cnfImpartial()
+    # cnf_non_constant = cnfNonConstant()
+    # results = []
+    # # Holzman 1:
+    # results.append('I, A, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfAnonymity()+cnf_non_constant),list)))
+    # # Holzman 1, with stronger anonymity.
+    # results.append('I, strong-A, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfApprovalScoreAnonymity()+cnf_non_constant),list)))
+    # # Holzman 2:
+    # results.append('I, CNU, CPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfCondNegUnanimous()+cnfCondPosUnanimous()),list)))
+
+    # SAT-solving for subsets of axioms for th. 3 with approval score anonymity and th. 4 -- i.e. search for stronger impossibilities.
+    # Generate all cnfs.
     cnf_exactly_k = cnfAtLeastK()+cnfAtMostK()
     cnf_impartial = cnfImpartial()
-    cnf_no_exclusion = cnfNoExclusion()
+    cnf_strong_anonymous = cnfApprovalScoreAnonymity()
+    cnf_non_constant = cnfNonConstant()
+    cnf_condnegunanimous = cnfCondNegUnanimous()
+    cnf_condposunanimous = cnfCondPosUnanimous()
+    # Initialize list of results
     results = []
-    # Holzman 1:
-    results.append('I, A, NE: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfAnonymity()+cnf_no_exclusion),list)))
-    # Holzman 1, with stronger anonymity.
-    results.append('I, strong-A, NE: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfApprovalScoreAnonymity()+cnf_no_exclusion),list)))
-    # Holzman 2:
-    results.append('I, CNU, CPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnfCondNegUnanimous()+cnfCondPosUnanimous()),list)))
+    # Check that all axioms are satisfiable.
+    results.append('INDIVIDUAL AXIOMS\n\tI: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial,list)))
+    results.append('\tstrong-A: ' + str(isinstance(solve(cnf_exactly_k+cnf_strong_anonymous,list)))
+    results.append('\tNC: ' + str(isinstance(solve(cnf_exactly_k+cnf_non_constant,list)))
+    results.append('\tCNU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condnegunanimous,list)))
+    results.append('\tCPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condposunanimous,list)))
+    # Check subsets of theorem 3
+    results.append('THEOREM 3\n\tI, strong-A' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_strong_anonymous),list)))
+    results.append('\tI, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_non_constant),list)))
+    results.append('\tstrong-A, NC: ' + str(isinstance(solve(cnf_exactly_k+cnf_strong_anonymous+cnf_non_constant),list)))
+    # Check subsets of theorem 4
+    results.append('THEOREM 4\n\tI, CNU: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_condnegunanimous),list)))
+    results.append('\tI, CPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_impartial+cnf_condposunanimous),list)))
+    results.append('\tCNU, CPU: ' + str(isinstance(solve(cnf_exactly_k+cnf_condnegunanimous+cnf_condposunanimous),list)))
 
     return results
-
 
 def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLabels=False,filename="approval_results_no_empty_ballots.txt"):
     """
@@ -310,7 +333,7 @@ def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLa
                     file = open(filename, 'a')
                 # wipe previous results the when you start entirely over
                 else: 
-                    file = open(filename, 'w')
+                    file = open(filename, 'a')
                 # write what parameters are being considered
                 file.write(str(n)+','+str(m)+','+str(k)+':\n')   
                 print(str(n)+','+str(m)+','+str(k)+': ')                
@@ -331,9 +354,9 @@ def iterate(nRange,ax,axLabels,mRange=False,kRange=False,outSize=False,outSizeLa
 # if __name__ == "__main__" guarantees that we're using the function defined in this file and not from some other imported module
 if __name__ == "__main__":
     # Both Holzman-Moulin impossibilities for size =k
-    iterate(nRange=range(3,5),ax=[],axLabels=[])
+    iterate(nRange=range(3,6),ax=[],axLabels=[])
     
     # # single instance
-    # axDesc = ["I,NU,PU"]
-    # cnfComb = ["cnfImpartial()+cnfCondNegUnanimous()+cnfCondPosUnanimous()"]
-    # iterate(nRange=[5],ax=cnfComb,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"])
+    # axDesc = ["I,A,NC","I,strong-A,NC"]
+    # axComb = ["cnfImpartial()+cnfAnonymity()+cnfNonConstant()","cnfImpartial()+cnfApprovalScoreAnonymity()+cnfNonConstant()"]
+    # iterate(nRange=range(3,6),ax=axComb,axLabels=axDesc,outSize=["cnfAtLeastK()+cnfAtMostK()"],outSizeLabels=["=K"])
